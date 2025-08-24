@@ -70,13 +70,14 @@ const HomeScreen = ({ navigation }) => {
   const renderHeader = () => (
     <Animated.View 
       style={[
-        styles.header,
+        styles.headerShadowContainer,
         {
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }],
         }
       ]}
     >
+      <View style={styles.header}>
       <Animated.View 
         style={[
           styles.logoContainer,
@@ -100,7 +101,7 @@ const HomeScreen = ({ navigation }) => {
           <Feather
            name="shopping-bag"
             size={24}
-             color={Colors.textLuxury}
+             color={Colors.textPrimary}
               />
         </Animated.View>
         <Animated.View 
@@ -112,6 +113,7 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.cartBadgeText}>3</Text>
         </Animated.View>
       </TouchableOpacity>
+      </View>
     </Animated.View>
   );
 
@@ -254,20 +256,24 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  headerShadowContainer: {
+    // Shadow properties with curved shape
+    backgroundColor: Colors.surfaceElevated,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    elevation: 6,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingVertical: 20,
-    backgroundColor: Colors.surfaceElevated,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-    elevation: 4,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
+    backgroundColor: 'transparent',
   },
   logoContainer: {
     flexDirection: 'row',
@@ -339,13 +345,13 @@ const styles = StyleSheet.create({
   cartButton: {
     position: 'relative',
     padding: 14,
-    backgroundColor: Colors.surfaceElevated,
+    // backgroundColor: Colors.surfaceElevated,
     // borderRadius: 20,
-    elevation: 4,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 6,
+    // elevation: 4,
+    // shadowColor: Colors.shadow,
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 1,
+    // shadowRadius: 6,
     // borderWidth: 1,
     // borderColor: Colors.borderLight,
   },
@@ -353,7 +359,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: Colors.textLuxury,
+    backgroundColor: Colors.textPrimary,
     borderRadius: 12,
     minWidth: 24,
     height: 24,
