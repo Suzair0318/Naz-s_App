@@ -1,25 +1,18 @@
-import { SafeAreaView, StyleSheet, Text } from 'react-native';
+import React from 'react';
+import { StatusBar } from 'react-native';
+import TabNavigator from './src/navigation/TabNavigator';
+import { Colors } from './src/constants/Colors';
 
 function App() {
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Ecommerce App</Text>
-    </SafeAreaView>
+    <>
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor={Colors.background}
+      />
+      <TabNavigator />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',  // set background
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    color: '#111111',            // set text color
-    fontSize: 28,
-    fontWeight: '700',
-  },
-});
 
 export default App;
