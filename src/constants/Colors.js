@@ -1,37 +1,43 @@
-// Brand colors based on Naz's Collection theme
+// Classic Luxury Theme - Black, White & Gold (Perfect for N&N Logo)
 export const Colors = {
-  // Primary brand colors
-  primary: '#D4AF37', // Gold from logo
-  primaryDark: '#B8941F',
-  primaryLight: '#E6C866',
+  // Primary brand colors - Classic luxury palette
+  primary: '#D4AF37', // Pure Gold - matches your logo's elegance
+  secondary: '#000000', // Pure Black - matches your logo background
+  accent: '#B76E79', // Rose Gold - feminine luxury touch
   
-  // Secondary colors
-  secondary: '#000000', // Black from logo
-  secondaryLight: '#333333',
+  // Background hierarchy - Clean and sophisticated
+  background: '#FFFFFF', // Pure white background
+  surface: '#F8F8F8', // Light gray surface
+  surfaceElevated: '#FFFFFF', // Pure white for cards
   
-  // Background colors
-  background: '#FFFFFF',
-  backgroundLight: '#F8F8F8',
-  backgroundDark: '#1A1A1A',
+  // Text hierarchy - High contrast and readable
+  text: '#000000', // Pure black text
+  textSecondary: '#666666', // Medium gray
+  textLight: '#999999', // Light gray
+  textLuxury: '#D4AF37', // Gold for premium elements
   
-  // Text colors
-  textPrimary: '#000000',
-  textSecondary: '#666666',
-  textLight: '#999999',
-  textWhite: '#FFFFFF',
+  // UI elements - Clean and minimal
+  border: '#E0E0E0', // Light gray border
+  borderLight: '#F0F0F0', // Very light border
+  shadow: 'rgba(0, 0, 0, 0.1)', // Classic black shadow
   
-  // Accent colors
-  accent: '#FF6B6B', // For sale/discount tags
-  success: '#4CAF50',
-  warning: '#FF9800',
-  error: '#F44336',
+  // Status colors - Classic palette
+  success: '#4CAF50', // Clean green
+  error: '#F44336', // Clean red
+  warning: '#FF9800', // Clean orange
+  info: '#2196F3', // Clean blue
   
-  // UI colors
-  border: '#E0E0E0',
-  shadow: 'rgba(0, 0, 0, 0.1)',
-  overlay: 'rgba(0, 0, 0, 0.5)',
+  // Interactive elements - Bold and luxurious
+  buttonPrimary: '#D4AF37', // Pure gold buttons
+  buttonSecondary: '#000000', // Black buttons
+  buttonText: '#FFFFFF', // White text on buttons
   
-  // Card colors
-  cardBackground: '#FFFFFF',
-  cardShadow: 'rgba(212, 175, 55, 0.1)',
+  // Premium surfaces
+  card: '#FFFFFF', // Pure white cards
+  cardShadow: 'rgba(0, 0, 0, 0.08)', // Subtle shadow
+  
+  // Special luxury accents
+  goldAccent: '#D4AF37', // Pure gold highlights
+  roseGoldAccent: '#B76E79', // Rose gold for feminine touch
+  blackAccent: '#000000', // Pure black for contrast
 };

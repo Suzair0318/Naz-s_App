@@ -67,7 +67,7 @@ const ProductCard = ({ product, onPress, onAddToCart, onToggleWishlist }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.cardBackground,
+    backgroundColor: Colors.card,
     borderRadius: 12,
     marginBottom: 16,
     shadowColor: Colors.cardShadow,
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent,
   },
   badgeText: {
-    color: Colors.textWhite,
+    color: '#FFFFFF',
     fontSize: Fonts.sizes.xs,
     fontWeight: Fonts.weights.bold,
   },
@@ -141,10 +141,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   name: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textPrimary,
+    fontSize: Fonts.sizes.medium,
+    color: Colors.text,
     fontWeight: Fonts.weights.semiBold,
-    lineHeight: Fonts.lineHeights.normal * Fonts.sizes.md,
     marginBottom: 6,
   },
   ratingContainer: {
@@ -153,7 +152,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   rating: {
-    fontSize: Fonts.sizes.sm,
+    fontSize: Fonts.sizes.small,
     color: Colors.primary,
     fontWeight: Fonts.weights.medium,
     marginRight: 4,
@@ -168,13 +167,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   price: {
-    fontSize: Fonts.sizes.lg,
-    color: Colors.textPrimary,
+    fontSize: Fonts.sizes.large,
+    color: Colors.text,
     fontWeight: Fonts.weights.bold,
     marginRight: 8,
   },
   originalPrice: {
-    fontSize: Fonts.sizes.sm,
+    fontSize: Fonts.sizes.small,
     color: Colors.textLight,
     textDecorationLine: 'line-through',
   },
@@ -185,8 +184,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addToCartText: {
-    color: Colors.textWhite,
-    fontSize: Fonts.sizes.sm,
+    color: '#FFFFFF',
+    fontSize: Fonts.sizes.small,
     fontWeight: Fonts.weights.semiBold,
   },
 });

@@ -109,21 +109,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   smallText: {
-    fontSize: Fonts.sizes.sm,
+    fontSize: Fonts.sizes.small,
   },
   mediumText: {
-    fontSize: Fonts.sizes.md,
+    fontSize: Fonts.sizes.medium,
   },
   largeText: {
-    fontSize: Fonts.sizes.lg,
+    fontSize: Fonts.sizes.large,
   },
   
   // Text variants
   primaryText: {
-    color: Colors.textWhite,
+    color: '#FFFFFF',
   },
   secondaryText: {
-    color: Colors.textWhite,
+    color: '#FFFFFF',
   },
   outlineText: {
     color: Colors.primary,

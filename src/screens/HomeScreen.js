@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,9 @@ import {
   TouchableOpacity,
   FlatList,
   Dimensions,
+  Animated,
 } from 'react-native';
+import Feather from 'react-native-vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
@@ -21,29 +23,117 @@ import  Naz_Logo from '../assets/images/naz_logo.jpeg'
 const { width } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(-50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const cartBounceAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Header entrance animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleCartPress = () => {
+    // Cart bounce animation
+    Animated.sequence([
+      Animated.timing(cartBounceAnim, {
+        toValue: 1.2,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cartBounceAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    
+    navigation.navigate('Cart');
+  };
+
   const renderHeader = () => (
-    <View style={styles.header}>
-      <View style={styles.logoContainer}>
+    <Animated.View 
+      style={[
+        styles.header,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        }
+      ]}
+    >
+      <Animated.View 
+        style={[
+          styles.logoContainer,
+          {
+            transform: [{ scale: scaleAnim }],
+          }
+        ]}
+      >
         <Image source={Naz_Logo} style={styles.logoImage} resizeMode="contain" />
         <View style={styles.brandTextContainer}>
           <Text style={styles.brandName}>Naz's Collection</Text>
-          <Text style={styles.brandTagline}> WOMEN'S FASHION</Text>
+          <Text style={styles.brandTagline}>WOMEN'S FASHION</Text>
         </View>
-      </View>
-      <TouchableOpacity style={styles.cartButton}>
-        <Text style={styles.cartIcon}>🛍️</Text>
-        <View style={styles.cartBadge}>
+      </Animated.View>
+      <TouchableOpacity 
+        style={styles.cartButton}
+        onPress={handleCartPress}
+        activeOpacity={0.7}
+      >
+        <Animated.View style={{ transform: [{ scale: cartBounceAnim }] }}>
+          <Feather
+           name="shopping-bag"
+            size={24}
+             color={Colors.textLuxury}
+              />
+        </Animated.View>
+        <Animated.View 
+          style={[
+            styles.cartBadge,
+            { transform: [{ scale: cartBounceAnim }] }
+          ]}
+        >
           <Text style={styles.cartBadgeText}>3</Text>
-        </View>
+        </Animated.View>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 
   const renderSearchBar = () => (
-    <TouchableOpacity style={styles.searchContainer}>
-      <Text style={styles.searchIcon}>🔍</Text>
-      <Text style={styles.searchPlaceholder}>Search for elegant clothing...</Text>
-    </TouchableOpacity>
+    <Animated.View
+      style={[
+        styles.searchContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        }
+      ]}
+    >
+      <TouchableOpacity 
+        style={styles.searchTouchable}
+        onPress={() => navigation.navigate('Search')}
+        activeOpacity={0.8}
+      >
+        <Feather name="search" size={18} color={Colors.textSecondary} />
+        <Text style={styles.searchPlaceholder}>Search for elegant clothing...</Text>
+      </TouchableOpacity>
+    </Animated.View>
   );
 
   const renderBanner = () => (
@@ -168,16 +258,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingVertical: 20,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surfaceElevated,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderBottomColor: Colors.borderLight,
+    elevation: 4,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -196,15 +286,17 @@ const styles = StyleSheet.create({
   brandName: {
     fontSize: Fonts.sizes.large,
     fontWeight: Fonts.weights.bold,
-    color: Colors.primary,
-    letterSpacing: 0.5,
+    color: Colors.textLuxury,
+    letterSpacing: 0.8,
+    fontFamily: 'serif',
   },
   brandTagline: {
     fontSize: Fonts.sizes.small,
     fontWeight: Fonts.weights.medium,
     color: Colors.textSecondary,
-    letterSpacing: 1,
-    marginTop: 2,
+    letterSpacing: 1.2,
+    marginTop: 3,
+    opacity: 0.8,
   },
   logoCircle: {
     width: 50,
@@ -246,47 +338,63 @@ const styles = StyleSheet.create({
   },
   cartButton: {
     position: 'relative',
-    padding: 8,
-  },
-  cartIcon: {
-    fontSize: 24,
+    padding: 14,
+    backgroundColor: Colors.surfaceElevated,
+    // borderRadius: 20,
+    elevation: 4,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    // borderWidth: 1,
+    // borderColor: Colors.borderLight,
   },
   cartBadge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: Colors.accent,
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    alignItems: 'center',
+    top: -2,
+    right: -2,
+    backgroundColor: Colors.textLuxury,
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
     justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.surfaceElevated,
   },
   cartBadgeText: {
-    color: Colors.textWhite,
-    fontSize: Fonts.sizes.xs,
-    fontWeight: Fonts.weights.bold,
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   searchContainer: {
+    marginHorizontal: 24,
+    marginVertical: 20,
+    backgroundColor: Colors.surfaceElevated,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    elevation: 3,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+  },
+  searchTouchable: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.backgroundLight,
-    marginHorizontal: 20,
-    marginVertical: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   searchIcon: {
     fontSize: 16,
     marginRight: 12,
   },
   searchPlaceholder: {
-    flex: 1,
-    fontSize: Fonts.sizes.md,
+    fontSize: Fonts.sizes.medium,
     color: Colors.textLight,
+    marginLeft: 12,
+    fontStyle: 'italic',
   },
   bannerContainer: {
     marginHorizontal: 20,
@@ -294,7 +402,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     height: 200,
-    position: 'relative',
   },
   bannerImage: {
     width: '100%',
@@ -307,7 +414,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(26, 26, 26, 0.45)',
   },
   bannerContent: {
     position: 'absolute',
@@ -320,41 +427,47 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   bannerTitle: {
-    fontSize: Fonts.sizes.xxxl,
+    fontSize: Fonts.sizes.extraLarge,
     fontWeight: Fonts.weights.bold,
-    color: Colors.textWhite,
-    textAlign: 'center',
-    marginBottom: 8,
+    color: '#FFFFFF',
+    marginBottom: 10,
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   bannerSubtitle: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textWhite,
-    textAlign: 'center',
+    fontSize: Fonts.sizes.medium,
+    color: '#FFFFFF',
     marginBottom: 20,
-    opacity: 0.9,
+    opacity: 0.95,
+    letterSpacing: 0.3,
+    fontStyle: 'italic',
   },
   bannerButton: {
     paddingHorizontal: 24,
   },
   section: {
-    marginBottom: 24,
+    marginVertical: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingHorizontal: 24,
+    marginBottom: 18,
   },
   sectionTitle: {
-    fontSize: Fonts.sizes.xl,
+    fontSize: Fonts.sizes.large,
     fontWeight: Fonts.weights.bold,
-    color: Colors.textPrimary,
+    color: Colors.text,
+    letterSpacing: 0.3,
   },
   sectionAction: {
-    fontSize: Fonts.sizes.sm,
-    color: Colors.primary,
+    fontSize: Fonts.sizes.medium,
+    color: Colors.textLuxury,
     fontWeight: Fonts.weights.semiBold,
+    letterSpacing: 0.2,
   },
   categoriesList: {
     paddingHorizontal: 20,

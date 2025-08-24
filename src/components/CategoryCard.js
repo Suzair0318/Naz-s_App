@@ -46,14 +46,14 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   name: {
-    fontSize: Fonts.sizes.md,
-    color: Colors.textWhite,
+    fontSize: Fonts.sizes.medium,
+    color: '#FFFFFF',
     fontWeight: Fonts.weights.semiBold,
     marginBottom: 2,
   },
   itemCount: {
     fontSize: Fonts.sizes.xs,
-    color: Colors.textWhite,
+    color: '#FFFFFF',
     opacity: 0.9,
   },
 });

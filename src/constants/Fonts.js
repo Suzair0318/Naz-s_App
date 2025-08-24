@@ -2,19 +2,15 @@
 export const Fonts = {
   // Font families
   primary: 'System', // Using system fonts for now
-  secondary: 'System',
   
   // Font sizes
   sizes: {
     xs: 12,
-    sm: 14,
-    md: 16,
-    lg: 18,
-    xl: 20,
-    xxl: 24,
-    xxxl: 28,
-    display: 32,
-    hero: 40,
+    small: 14,
+    medium: 16,
+    large: 20,
+    extraLarge: 28,
+    xxl: 36,
   },
   
   // Font weights
