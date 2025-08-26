@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 
@@ -57,8 +58,16 @@ const ProductCard = ({ product, onPress, onAddToCart, onToggleWishlist }) => {
         <TouchableOpacity 
           style={styles.addToCartButton}
           onPress={onAddToCart}
+          activeOpacity={0.8}
         >
-          <Text style={styles.addToCartText}>Add to Cart</Text>
+          <LinearGradient
+            colors={['#000000', '#333333']}
+            style={styles.buttonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text style={styles.addToCartText}>Add to Cart</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -67,19 +76,19 @@ const ProductCard = ({ product, onPress, onAddToCart, onToggleWishlist }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: Colors.cardShadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
     overflow: 'hidden',
   },
   imageContainer: {
     position: 'relative',
-    height: 200,
+    height: 160,
   },
   image: {
     width: '100%',
@@ -133,18 +142,19 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   category: {
-    fontSize: Fonts.sizes.xs,
+    fontSize: 9,
     color: Colors.textSecondary,
-    fontWeight: Fonts.weights.medium,
+    fontWeight: '500',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
     marginBottom: 4,
   },
   name: {
-    fontSize: Fonts.sizes.medium,
-    color: Colors.text,
-    fontWeight: Fonts.weights.semiBold,
+    fontSize: 13,
+    color: Colors.textPrimary,
+    fontWeight: '600',
     marginBottom: 6,
+    lineHeight: 16,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -152,41 +162,51 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   rating: {
-    fontSize: Fonts.sizes.small,
+    fontSize: 11,
     color: Colors.primary,
-    fontWeight: Fonts.weights.medium,
+    fontWeight: '500',
     marginRight: 4,
   },
   reviews: {
-    fontSize: Fonts.sizes.xs,
+    fontSize: 9,
     color: Colors.textLight,
   },
   priceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   price: {
-    fontSize: Fonts.sizes.large,
-    color: Colors.text,
-    fontWeight: Fonts.weights.bold,
-    marginRight: 8,
+    fontSize: 15,
+    color: Colors.textPrimary,
+    fontWeight: '700',
+    marginRight: 6,
   },
   originalPrice: {
-    fontSize: Fonts.sizes.small,
-    color: Colors.textLight,
+    fontSize: 12,
+    color: Colors.textSecondary,
     textDecorationLine: 'line-through',
   },
   addToCartButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 10,
-    borderRadius: 6,
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  buttonGradient: {
+    paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   addToCartText: {
     color: '#FFFFFF',
-    fontSize: Fonts.sizes.small,
-    fontWeight: Fonts.weights.semiBold,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
 });
 

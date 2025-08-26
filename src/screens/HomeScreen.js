@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
@@ -138,22 +139,93 @@ const HomeScreen = ({ navigation }) => {
     </Animated.View>
   );
 
-  const renderBanner = () => (
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const bannerScrollRef = useRef(null);
+
+  // Auto-scroll banner carousel
+  useEffect(() => {
+    const bannerInterval = setInterval(() => {
+      setCurrentBannerIndex(prevIndex => {
+        const nextIndex = (prevIndex + 1) % bannerData.length;
+        if (bannerScrollRef.current) {
+          bannerScrollRef.current.scrollToIndex({
+            index: nextIndex,
+            animated: true,
+          });
+        }
+        return nextIndex;
+      });
+    }, 4000); // Change every 4 seconds
+
+    return () => clearInterval(bannerInterval);
+  }, []);
+
+  const renderBannerItem = ({ item }) => (
     <View style={styles.bannerContainer}>
-      <Image 
-        source={{ uri: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=300&fit=crop' }}
-        style={styles.bannerImage}
-      />
-      <View style={styles.bannerOverlay} />
-      <View style={styles.bannerContent}>
-        <Text style={styles.bannerTitle}>New Collection</Text>
-        <Text style={styles.bannerSubtitle}>Discover elegance in every piece</Text>
-        <CustomButton
-          title="Shop Now"
-          variant="primary"
-          size="medium"
-          style={styles.bannerButton}
+      <View style={styles.bannerImageContainer}>
+        <Image 
+          source={{ uri: item.image }}
+          style={styles.bannerImage}
         />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)']}
+          style={styles.bannerGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+        />
+      </View>
+      <View style={styles.bannerContent}>
+        <View style={styles.bannerTextContainer}>
+          <Text style={styles.bannerTitle}>{item.title}</Text>
+          <View style={styles.bannerDivider} />
+          <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
+        </View>
+        <View style={styles.bannerButtonContainer}>
+          <TouchableOpacity style={styles.premiumButton} activeOpacity={0.8}>
+            <LinearGradient
+              colors={['#C0C0C0', '#A8A8A8', '#909090']}
+              style={styles.buttonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Text style={styles.premiumButtonText}>{item.buttonText}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderBanner = () => (
+    <View style={styles.bannerWrapper}>
+      <FlatList
+        ref={bannerScrollRef}
+        data={bannerData}
+        renderItem={renderBannerItem}
+        keyExtractor={(item) => item.id}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(event) => {
+          const index = Math.round(event.nativeEvent.contentOffset.x / width);
+          setCurrentBannerIndex(index);
+        }}
+        getItemLayout={(data, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+      />
+      <View style={styles.bannerPagination}>
+        {bannerData.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.paginationDot,
+              index === currentBannerIndex && styles.paginationDotActive,
+            ]}
+          />
+        ))}
       </View>
     </View>
   );
@@ -162,41 +234,54 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
       {actionText && (
-        <TouchableOpacity onPress={onActionPress}>
-          <Text style={styles.sectionAction}>{actionText}</Text>
+        <TouchableOpacity style={styles.viewAllButton} onPress={onActionPress}>
+          <Text style={styles.viewAllText}>{actionText}</Text>
+          <View style={styles.viewAllArrow} />
         </TouchableOpacity>
       )}
     </View>
   );
 
   const renderCategories = () => (
-    <View style={styles.section}>
-      {renderSectionHeader('Shop by Category', 'View All')}
+    <View style={styles.categoriesSection}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Shop by Category</Text>
+        <TouchableOpacity style={styles.viewAllButton}>
+          <Text style={styles.viewAllText}>View All</Text>
+          <View style={styles.viewAllArrow} />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.categoriesContainer}>
+        <FlatList
+          data={categories}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <CategoryCard
+              category={item}
+              onPress={() => navigation.navigate('Category', { category: item })}
+            />
+          )}
+          contentContainerStyle={styles.categoriesList}
+        />
+      </View>
+    </View>
+  );
+
+
+
+
+  const renderFeaturedProducts = () => (
+    <View style={styles.featuredSection}>
+      {renderSectionHeader('Featured Products', 'View All')}
       <FlatList
-        data={categories}
+        data={featuredProducts}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <CategoryCard
-            category={item}
-            onPress={() => navigation.navigate('Category', { category: item })}
-          />
-        )}
-        contentContainerStyle={styles.categoriesList}
-      />
-    </View>
-  );
-
-  const renderFeaturedProducts = () => (
-    <View style={styles.section}>
-      {renderSectionHeader('Featured Products', 'View All')}
-      <FlatList
-        data={featuredProducts.slice(0, 2)}
-        numColumns={2}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => (
-          <View style={[styles.productCardContainer, index % 2 === 1 && styles.productCardRight]}>
+          <View style={styles.horizontalFeaturedCard}>
             <ProductCard
               product={item}
               onPress={() => navigation.navigate('ProductDetail', { product: item })}
@@ -205,13 +290,13 @@ const HomeScreen = ({ navigation }) => {
             />
           </View>
         )}
-        scrollEnabled={false}
+        contentContainerStyle={styles.featuredProductsList}
       />
     </View>
   );
 
   const renderNewArrivals = () => (
-    <View style={styles.section}>
+    <View style={styles.featuredSection}>
       {renderSectionHeader('New Arrivals', 'View All')}
       <FlatList
         data={newArrivals}
@@ -219,7 +304,7 @@ const HomeScreen = ({ navigation }) => {
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.horizontalProductCard}>
+          <View style={styles.horizontalFeaturedCard}>
             <ProductCard
               product={item}
               onPress={() => navigation.navigate('ProductDetail', { product: item })}
@@ -228,7 +313,7 @@ const HomeScreen = ({ navigation }) => {
             />
           </View>
         )}
-        contentContainerStyle={styles.horizontalProductsList}
+        contentContainerStyle={styles.featuredProductsList}
       />
     </View>
   );
@@ -240,8 +325,8 @@ const HomeScreen = ({ navigation }) => {
         {renderSearchBar()}
         {renderBanner()}
         {renderCategories()}
-        {renderFeaturedProducts()}
         {renderNewArrivals()}
+        {renderFeaturedProducts()}
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
@@ -376,21 +461,21 @@ const styles = StyleSheet.create({
   searchContainer: {
     marginHorizontal: 24,
     marginVertical: 20,
-    backgroundColor: Colors.surfaceElevated,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    elevation: 3,
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    elevation: 4,
     shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   searchTouchable: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 18,
   },
   searchIcon: {
     fontSize: 16,
@@ -398,29 +483,41 @@ const styles = StyleSheet.create({
   },
   searchPlaceholder: {
     fontSize: Fonts.sizes.medium,
-    color: Colors.textLight,
+    color: Colors.textSecondary,
     marginLeft: 12,
     fontStyle: 'italic',
+    flex: 1,
+    letterSpacing: 0.3,
+  },
+  bannerWrapper: {
+    marginBottom: 32,
   },
   bannerContainer: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 16,
+    width: width,
+    paddingHorizontal: 20,
+    position: 'relative',
+  },
+  bannerImageContainer: {
+    height: 240,
+    borderRadius: 20,
     overflow: 'hidden',
-    height: 200,
+    elevation: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
   bannerImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  bannerOverlay: {
+  bannerGradient: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(26, 26, 26, 0.45)',
   },
   bannerContent: {
     position: 'absolute',
@@ -428,30 +525,70 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    justifyContent: 'space-between',
+    padding: 32,
+  },
+  bannerTextContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+  },
+  bannerDivider: {
+    width: 60,
+    height: 2,
+    backgroundColor: '#C0C0C0',
+    marginVertical: 12,
+    opacity: 0.8,
+  },
+  bannerButtonContainer: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  premiumButton: {
+    borderRadius: 25,
+    elevation: 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+  },
+  buttonGradient: {
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   bannerTitle: {
-    fontSize: Fonts.sizes.extraLarge,
-    fontWeight: Fonts.weights.bold,
+    fontSize: 32,
+    fontWeight: '800',
     color: '#FFFFFF',
-    marginBottom: 10,
-    letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textAlign: 'center',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+    lineHeight: 38,
   },
   bannerSubtitle: {
-    fontSize: Fonts.sizes.medium,
+    fontSize: 16,
     color: '#FFFFFF',
-    marginBottom: 20,
-    opacity: 0.95,
-    letterSpacing: 0.3,
+    textAlign: 'center',
+    opacity: 0.9,
+    letterSpacing: 0.8,
+    fontWeight: '300',
     fontStyle: 'italic',
-  },
-  bannerButton: {
-    paddingHorizontal: 24,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   section: {
     marginVertical: 20,
@@ -464,9 +601,9 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   sectionTitle: {
-    fontSize: Fonts.sizes.large,
-    fontWeight: Fonts.weights.bold,
-    color: Colors.text,
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.textPrimary,
     letterSpacing: 0.3,
   },
   sectionAction: {
@@ -475,7 +612,71 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.semiBold,
     letterSpacing: 0.2,
   },
+  categoriesSection: {
+    paddingVertical: 16,
+    marginHorizontal: -20,
+    paddingHorizontal: 20,
+  },
+  premiumSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 4,
+  },
+  sectionTitleContainer: {
+    alignItems: 'flex-start',
+  },
+  premiumSectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  sectionTitleUnderline: {
+    width: 40,
+    height: 3,
+    backgroundColor: '#C0C0C0',
+    marginTop: 8,
+    borderRadius: 2,
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  viewAllText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  viewAllArrow: {
+    width: 6,
+    height: 6,
+    borderTopWidth: 2,
+    borderRightWidth: 2,
+    borderColor: Colors.textSecondary,
+    transform: [{ rotate: '45deg' }],
+    marginLeft: 6,
+  },
+  categoriesContainer: {
+    paddingLeft: 4,
+  },
   categoriesList: {
+    paddingHorizontal: 16,
+  },
+  featuredSection: {
+    marginTop: 16,
+  },
+  horizontalFeaturedCard: {
+    width: 180,
+    marginRight: 16,
+  },
+  featuredProductsList: {
     paddingHorizontal: 20,
   },
   productCardContainer: {
@@ -491,6 +692,24 @@ const styles = StyleSheet.create({
   },
   horizontalProductsList: {
     paddingHorizontal: 20,
+  },
+  bannerPagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingHorizontal: 20,
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.border,
+    marginHorizontal: 4,
+  },
+  paginationDotActive: {
+    backgroundColor: Colors.textPrimary,
+    width: 20,
   },
   bottomSpacing: {
     height: 20,
