@@ -1,10 +1,21 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
+import useCartStore from '../store/cartStore';
 
-const ProductCard = ({ product, onPress, onAddToCart, onToggleWishlist }) => {
+const ProductCard = ({ product, onPress, onToggleWishlist }) => {
+  const { items, addToCart } = useCartStore();
+  
+  // Check if product is in cart
+  const isInCart = useMemo(() => {
+    return items.some(item => item.id === product.id);
+  }, [items, product.id]);
+
+  const handleAddToCart = () => {
+    addToCart(product);
+  };
   const renderPriceSection = () => (
     <View style={styles.priceContainer}>
       <Text style={styles.price}>${product.price}</Text>
@@ -41,12 +52,14 @@ const ProductCard = ({ product, onPress, onAddToCart, onToggleWishlist }) => {
       <View style={styles.imageContainer}>
         <Image source={{ uri: product.image }} style={styles.image} />
         {renderBadges()}
-        <TouchableOpacity 
-          style={styles.wishlistButton}
-          onPress={onToggleWishlist}
-        >
-          <Text style={styles.wishlistIcon}>♡</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.wishlistButton]}
+            onPress={onToggleWishlist}
+          >
+            <Text style={styles.wishlistIcon}>♡</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
       <View style={styles.contentContainer}>
@@ -56,17 +69,19 @@ const ProductCard = ({ product, onPress, onAddToCart, onToggleWishlist }) => {
         {renderPriceSection()}
         
         <TouchableOpacity 
-          style={styles.addToCartButton}
-          onPress={onAddToCart}
+          style={[styles.addToCartButton, isInCart && styles.inCartButton]}
+          onPress={handleAddToCart}
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={['#000000', '#333333']}
+            colors={isInCart ? ['#4CAF50', '#2E7D32'] : ['#000000', '#333333']}
             style={styles.buttonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.addToCartText}>Add to Cart</Text>
+            <Text style={styles.addToCartText}>
+              {isInCart ? 'In Cart' : 'Add to Cart'}
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -118,21 +133,39 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.xs,
     fontWeight: Fonts.weights.bold,
   },
-  wishlistButton: {
+  buttonRow: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
+    top: 10,
+    right: 10,
+    flexDirection: 'column',
+    gap: 8,
+  },
+  actionButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  cartButton: {
+    backgroundColor: Colors.primary,
+  },
+  inCartButton: {
+    backgroundColor: '#4CAF50',
+  },
+  cartButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  wishlistButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   wishlistIcon: {
     fontSize: 16,

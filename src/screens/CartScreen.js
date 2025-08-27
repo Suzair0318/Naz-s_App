@@ -12,7 +12,7 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import CustomButton from '../components/CustomButton';
 
-const CartScreen = ({ navigation }) => {
+const CartScreen = ({ navigation, onScroll }) => {
   const [cartItems, setCartItems] = useState([
     {
       id: '1',
@@ -160,9 +160,15 @@ const CartScreen = ({ navigation }) => {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
-        ListFooterComponent={renderSummary}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        ListFooterComponent={() => (
+          <>
+            {renderSummary()}
+            {renderCheckoutButton()}
+          </>
+        )}
       />
-      {renderCheckoutButton()}
     </SafeAreaView>
   );
 };
@@ -190,6 +196,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 20,
+    paddingBottom: 100,
   },
   cartItem: {
     flexDirection: 'row',
@@ -318,18 +325,6 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.lg,
     color: Colors.textPrimary,
     fontWeight: Fonts.weights.bold,
-  },
-  checkoutContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: Colors.background,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
   },
   emptyCart: {
     flex: 1,

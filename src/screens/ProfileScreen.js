@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 
-const ProfileScreen = ({ navigation }) => {
+const ProfileScreen = ({ navigation, onScroll }) => {
   const menuItems = [
     { id: '1', title: 'My Orders', icon: '📦', screen: 'Orders' },
     { id: '2', title: 'Wishlist', icon: '♡', screen: 'Wishlist' },
@@ -77,7 +77,12 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      >
         {renderHeader()}
         
         <View style={styles.menuContainer}>
@@ -224,7 +229,7 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.semiBold,
   },
   bottomSpacing: {
-    height: 40,
+    height: 100,
   },
 });
 

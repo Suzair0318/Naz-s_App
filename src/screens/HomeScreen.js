@@ -23,7 +23,7 @@ import  Naz_Logo from '../assets/images/naz_logo.jpeg'
 
 const { width } = Dimensions.get('window');
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({ navigation, onScroll }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -260,7 +260,15 @@ const HomeScreen = ({ navigation }) => {
           renderItem={({ item }) => (
             <CategoryCard
               category={item}
-              onPress={() => navigation.navigate('Category', { category: item })}
+              onPress={() => navigation.navigate('Products', { 
+                screen: 'Products',
+                params: { 
+                  categoryName: item.name,
+                  products: [...featuredProducts, ...newArrivals].filter(
+                    p => p.category === item.name
+                  )
+                }
+              })}
             />
           )}
           contentContainerStyle={styles.categoriesList}
@@ -285,7 +293,6 @@ const HomeScreen = ({ navigation }) => {
             <ProductCard
               product={item}
               onPress={() => navigation.navigate('ProductDetail', { product: item })}
-              onAddToCart={() => {}}
               onToggleWishlist={() => {}}
             />
           </View>
@@ -308,12 +315,13 @@ const HomeScreen = ({ navigation }) => {
             <ProductCard
               product={item}
               onPress={() => navigation.navigate('ProductDetail', { product: item })}
-              onAddToCart={() => {}}
               onToggleWishlist={() => {}}
             />
           </View>
         )}
         contentContainerStyle={styles.featuredProductsList}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       />
     </View>
   );
@@ -712,7 +720,7 @@ const styles = StyleSheet.create({
     width: 20,
   },
   bottomSpacing: {
-    height: 20,
+    height: 100,
   },
 });
 

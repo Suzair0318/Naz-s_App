@@ -13,7 +13,7 @@ import { Fonts } from '../constants/Fonts';
 import { featuredProducts, newArrivals } from '../data/mockData';
 import ProductCard from '../components/ProductCard';
 
-const SearchScreen = ({ navigation }) => {
+const SearchScreen = ({ navigation, onScroll }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [recentSearches] = useState(['Dresses', 'Blouses', 'Elegant', 'Evening wear']);
@@ -85,12 +85,14 @@ const SearchScreen = ({ navigation }) => {
             <ProductCard
               product={item}
               onPress={() => navigation.navigate('ProductDetail', { product: item })}
-              onAddToCart={() => {}}
               onToggleWishlist={() => {}}
             />
           </View>
         )}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       />
     </View>
   );

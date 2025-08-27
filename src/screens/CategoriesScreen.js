@@ -12,7 +12,7 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import { categories } from '../data/mockData';
 
-const CategoriesScreen = ({ navigation }) => {
+const CategoriesScreen = ({ navigation, onScroll }) => {
   const renderHeader = () => (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>Categories</Text>
@@ -44,6 +44,8 @@ const CategoriesScreen = ({ navigation }) => {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       />
     </SafeAreaView>
   );
@@ -72,6 +74,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 20,
+    paddingBottom: 100,
   },
   categoryItem: {
     height: 150,
