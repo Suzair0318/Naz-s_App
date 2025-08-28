@@ -46,6 +46,14 @@ export const featuredProducts = [
     category: 'Dresses',
     colors: ['Black', 'Navy', 'Burgundy'],
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
+    description:
+      "A timeless evening dress crafted from premium fabric with a flattering silhouette, designed for special occasions and elegant nights out.",
+    points: [
+      'Premium satin blend',
+      'Flattering A-line fit',
+      'Invisible back zipper',
+      'Fully lined for comfort',
+    ],
   },
   {
     id: '2',
@@ -60,6 +68,14 @@ export const featuredProducts = [
     category: 'Tops & Blouses',
     colors: ['White', 'Cream', 'Blush'],
     sizes: ['XS', 'S', 'M', 'L'],
+    description:
+      'An ultra-soft silk blouse with a luxurious drape that elevates any outfit from day to night.',
+    points: [
+      '100% silk fabric',
+      'Breathable and lightweight',
+      'Classic button-down design',
+      'Delicate sheen finish',
+    ],
   },
   {
     id: '3',
@@ -74,6 +90,14 @@ export const featuredProducts = [
     category: 'Outerwear',
     colors: ['Black', 'Camel', 'Gray'],
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
+    description:
+      'A tailored blazer with structured shoulders and a refined fit to complete your premium wardrobe.',
+    points: [
+      'Structured yet comfortable',
+      'Premium wool blend',
+      'Functional inner pockets',
+      'Single-breasted closure',
+    ],
   },
   {
     id: '4',
@@ -88,6 +112,14 @@ export const featuredProducts = [
     category: 'Bottoms',
     colors: ['Black', 'Navy', 'Charcoal'],
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
+    description:
+      'Elegant high-waist trousers designed for a sleek silhouette and all-day comfort.',
+    points: [
+      'Stretch comfort fabric',
+      'Tailored straight-leg fit',
+      'Concealed hook-and-bar closure',
+      'Wrinkle-resistant',
+    ],
   },
 ];
 
@@ -105,6 +137,14 @@ export const newArrivals = [
     category: 'Dresses',
     colors: ['Floral Print', 'Navy Floral'],
     sizes: ['XS', 'S', 'M', 'L'],
+    description:
+      'A romantic floral midi dress with a flowy silhouette perfect for brunches and garden parties.',
+    points: [
+      'Soft breathable fabric',
+      'Adjustable waist tie',
+      'Midi-length hem',
+      'Machine washable',
+    ],
   },
   {
     id: '6',
@@ -119,6 +159,14 @@ export const newArrivals = [
     category: 'Tops & Blouses',
     colors: ['Cream', 'Gray', 'Camel'],
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
+    description:
+      'Luxuriously soft cashmere sweater designed to keep you warm without compromising on style.',
+    points: [
+      '100% cashmere',
+      'Ultra-soft hand feel',
+      'Ribbed cuffs and hem',
+      'Classic crew neckline',
+    ],
   },
 ];
 

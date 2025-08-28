@@ -1,21 +1,9 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
-import useCartStore from '../store/cartStore';
 
 const ProductCard = ({ product, onPress, onToggleWishlist }) => {
-  const { items, addToCart } = useCartStore();
-  
-  // Check if product is in cart
-  const isInCart = useMemo(() => {
-    return items.some(item => item.id === product.id);
-  }, [items, product.id]);
-
-  const handleAddToCart = () => {
-    addToCart(product);
-  };
   const renderPriceSection = () => (
     <View style={styles.priceContainer}>
       <Text style={styles.price}>${product.price}</Text>
@@ -65,25 +53,7 @@ const ProductCard = ({ product, onPress, onToggleWishlist }) => {
       <View style={styles.contentContainer}>
         <Text style={styles.category}>{product.category}</Text>
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
-        {renderRating()}
         {renderPriceSection()}
-        
-        <TouchableOpacity 
-          style={[styles.addToCartButton, isInCart && styles.inCartButton]}
-          onPress={handleAddToCart}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={isInCart ? ['#4CAF50', '#2E7D32'] : ['#000000', '#333333']}
-            style={styles.buttonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Text style={styles.addToCartText}>
-              {isInCart ? 'In Cart' : 'Add to Cart'}
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -219,27 +189,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
     textDecorationLine: 'line-through',
-  },
-  addToCartButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  buttonGradient: {
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addToCartText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
   },
 });
 

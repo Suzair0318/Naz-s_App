@@ -11,42 +11,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import CustomButton from '../components/CustomButton';
+import useCartStore from '../store/cartStore';
 
 const CartScreen = ({ navigation, onScroll }) => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: '1',
-      name: 'Elegant Evening Dress',
-      price: 299.99,
-      image: 'https://images.unsplash.com/photo-1566479179817-c0c8e0e3f0c0?w=400&h=600&fit=crop',
-      size: 'M',
-      color: 'Black',
-      quantity: 1,
-    },
-    {
-      id: '2',
-      name: 'Silk Blouse Premium',
-      price: 159.99,
-      image: 'https://images.unsplash.com/photo-1564257577-2d3b8c3b7e5b?w=400&h=600&fit=crop',
-      size: 'S',
-      color: 'White',
-      quantity: 2,
-    },
-  ]);
+  const { items: cartItems, updateQuantity, removeFromCart } = useCartStore();
 
-  const updateQuantity = (id, change) => {
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + change) }
-          : item
-      )
-    );
+  const changeQty = (cartId, change) => {
+    const item = cartItems.find(i => i.cartId === cartId);
+    if (!item) return;
+    updateQuantity(cartId, Math.max(1, (item.quantity || 1) + change));
   };
 
-  const removeItem = (id) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
+  const removeItem = (cartId) => removeFromCart(cartId);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = 15.00;
@@ -64,21 +40,21 @@ const CartScreen = ({ navigation, onScroll }) => {
       <Image source={{ uri: item.image }} style={styles.itemImage} />
       <View style={styles.itemDetails}>
         <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemVariant}>Size: {item.size} • Color: {item.color}</Text>
+        <Text style={styles.itemVariant}>Size: {item.size || '-'} • Color: {item.color || '-'}</Text>
         <Text style={styles.itemPrice}>${item.price}</Text>
         
         <View style={styles.itemActions}>
           <View style={styles.quantityContainer}>
             <TouchableOpacity
               style={styles.quantityButton}
-              onPress={() => updateQuantity(item.id, -1)}
+              onPress={() => changeQty(item.cartId, -1)}
             >
               <Text style={styles.quantityButtonText}>-</Text>
             </TouchableOpacity>
             <Text style={styles.quantityText}>{item.quantity}</Text>
             <TouchableOpacity
               style={styles.quantityButton}
-              onPress={() => updateQuantity(item.id, 1)}
+              onPress={() => changeQty(item.cartId, 1)}
             >
               <Text style={styles.quantityButtonText}>+</Text>
             </TouchableOpacity>
@@ -86,7 +62,7 @@ const CartScreen = ({ navigation, onScroll }) => {
           
           <TouchableOpacity
             style={styles.removeButton}
-            onPress={() => removeItem(item.id)}
+            onPress={() => removeItem(item.cartId)}
           >
             <Text style={styles.removeButtonText}>Remove</Text>
           </TouchableOpacity>
@@ -137,7 +113,7 @@ const CartScreen = ({ navigation, onScroll }) => {
         title={`Checkout • $${total.toFixed(2)}`}
         variant="primary"
         size="large"
-        onPress={() => {}}
+        onPress={() => navigation.navigate('Checkout', { items: cartItems, totals: { subtotal, shipping, total } })}
       />
     </View>
   );
@@ -157,7 +133,7 @@ const CartScreen = ({ navigation, onScroll }) => {
       <FlatList
         data={cartItems}
         renderItem={renderCartItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.cartId || item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
         onScroll={onScroll}

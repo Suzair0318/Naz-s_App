@@ -1,5 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, Pressable, Animated, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, Text } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
@@ -7,14 +9,11 @@ import HomeScreen from '../screens/HomeScreen';
 import ProductsScreen from '../screens/ProductsScreen';
 import CartScreen from '../screens/CartScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import SearchScreen from '../screens/SearchScreen';
 import useCartStore from '../store/cartStore';
 
-const TabNavigator = () => {
-  const [activeTab, setActiveTab] = useState('Home');
-  const translateY = useRef(new Animated.Value(0)).current; // animation value
-  const lastScrollY = useRef(0); // to detect direction
+const Tab = createBottomTabNavigator();
 
+const TabNavigator = () => {
   const { items } = useCartStore();
   const [cartCount, setCartCount] = useState(0);
 
@@ -24,108 +23,56 @@ const TabNavigator = () => {
     setCartCount(count);
   }, [items]);
 
-  const tabs = [
-    { name: 'Home', icon: { active: 'home', inactive: 'home-outline' }, component: HomeScreen },
-    { name: 'Products', icon: { active: 'grid', inactive: 'grid-outline' }, component: ProductsScreen },
-    { name: 'Search', icon: { active: 'search', inactive: 'search-outline' }, component: SearchScreen },
-    { 
-      name: 'Cart', 
-      icon: { active: 'cart', inactive: 'cart-outline' }, 
-      component: CartScreen,
-      badge: cartCount > 0 ? cartCount : null 
-    },
-    { name: 'Profile', icon: { active: 'person', inactive: 'person-outline' }, component: ProfileScreen },
-  ];
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
 
-  const ActiveComponent = tabs.find(tab => tab.name === activeTab)?.component || HomeScreen;
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Products') {
+            iconName = focused ? 'grid' : 'grid-outline';
+          } else if (route.name === 'Cart') {
+            iconName = focused ? 'cart' : 'cart-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
 
-  // Function to handle scroll event
-  const handleScroll = (event) => {
-    const currentY = event.nativeEvent.contentOffset.y;
-    const scrollDirection = currentY > lastScrollY.current ? 'down' : 'up';
-    
-    // Only trigger animation if direction changes and we've scrolled more than 5 units
-    if (Math.abs(currentY - lastScrollY.current) > 5) {
-      if (scrollDirection === 'down' && translateY._value === 0) {
-        // Hide tab bar when scrolling down
-        Animated.spring(translateY, {
-          toValue: 100,
-          useNativeDriver: true,
-          tension: 50,
-          friction: 8,
-        }).start();
-      } else if (scrollDirection === 'up' && translateY._value > 0) {
-        // Show tab bar when scrolling up
-        Animated.spring(translateY, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 50,
-          friction: 8,
-        }).start();
-      }
-      
-      lastScrollY.current = currentY;
-    }
-  };
-
-  const renderTabBar = () => (
-    <Animated.View 
-      style={[
-        styles.tabBar, 
-        { 
-          transform: [{ translateY }],
-          elevation: 5,
-          zIndex: 1000,
-        }
-      ]}
-    >
-      {tabs.map((tab) => {
-        const isActive = activeTab === tab.name;
-        return (
-          <Pressable key={tab.name} style={styles.tabItemWrapper} onPress={() => setActiveTab(tab.name)}>
-            <View style={[
-              styles.tabItem, 
-              isActive && styles.activeTabItem,
-              tab.name === 'Cart' && isActive && styles.cartTabItem
-            ]}>
-              <Ionicons
-                name={isActive ? tab.icon.active : tab.icon.inactive}
-                size={22}
-                color={isActive ? Colors.textLight : Colors.textSecondary}
-                style={styles.tabIcon}
-              />
-              {tab.badge !== null && tab.name === 'Cart' && (
+          return (
+            <View style={styles.tabIconContainer}>
+              <Ionicons name={iconName} size={size} color={color} />
+              {route.name === 'Cart' && cartCount > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>
-                    {tab.badge > 9 ? '9+' : tab.badge}
+                    {cartCount > 9 ? '9+' : cartCount}
                   </Text>
                 </View>
               )}
             </View>
-          </Pressable>
-        );
+          );
+        },
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.textSecondary,
+        tabBarStyle: styles.tabBar,
+        tabBarLabelStyle: styles.tabBarLabel,
+        tabBarItemStyle: styles.tabBarItem,
       })}
-    </Animated.View>
-  );
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        {/* Pass onScroll prop so each screen can notify us */}
-        <ActiveComponent navigation={{ navigate: setActiveTab }} onScroll={handleScroll} />
-      </View>
-      {renderTabBar()}
-    </View>
+    >
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Products" component={ProductsScreen} />
+      <Tab.Screen name="Cart" component={CartScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  content: {
-    flex: 1,
+  tabIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabBar: {
     position: 'absolute',
@@ -140,43 +87,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 5,
     paddingHorizontal: 10,
     paddingVertical: 10,
-    flexDirection: 'row',
+    height: 70,
   },
-  tabItemWrapper: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  tabBarLabel: {
+    fontSize: Fonts.sizes.xs,
+    fontWeight: Fonts.weights.medium,
+    marginTop: 4,
   },
-  tabItem: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+  tabBarItem: {
+    paddingVertical: 8,
   },
-  activeTabItem: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  // Special style for cart tab when active
-  cartTabItem: {
-    position: 'relative',
-    overflow: 'visible',
-  },
-  tabIcon: {},
   badge: {
     position: 'absolute',
-    top: -5,
-    right: -5,
+    top: -8,
+    right: -8,
     backgroundColor: Colors.primary,
     borderRadius: 10,
     minWidth: 20,
@@ -184,10 +111,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
-    zIndex: 1, // Ensure badge stays above other elements
+    zIndex: 1,
   },
   badgeText: {
-    color: Colors.textLight,
+    color: Colors.textWhite,
     fontSize: 10,
     fontWeight: 'bold',
   },

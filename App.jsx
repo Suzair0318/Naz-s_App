@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
-import TabNavigator from './src/navigation/TabNavigator';
+import MainNavigator from './src/navigation/MainNavigator';
 import { Colors } from './src/constants/Colors';
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
         barStyle="dark-content" 
         backgroundColor={Colors.background}
       />
-      <TabNavigator />
+      <MainNavigator />
     </>
   );
 }

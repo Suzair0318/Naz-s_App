@@ -5,12 +5,20 @@ export const Fonts = {
   
   // Font sizes
   sizes: {
+    // canonical keys used across the app
     xs: 12,
+    sm: 14,
+    md: 16,
+    lg: 20,
+    xl: 24,
+    xxl: 36,
+    xxxl: 40,
+
+    // aliases for backward compatibility
     small: 14,
     medium: 16,
     large: 20,
-    extraLarge: 28,
-    xxl: 36,
+    extraLarge: 24,
   },
   
   // Font weights

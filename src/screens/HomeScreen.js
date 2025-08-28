@@ -24,6 +24,21 @@ import  Naz_Logo from '../assets/images/naz_logo.jpeg'
 const { width } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation, onScroll }) => {
+  // Ensure we only pass serializable params through navigation
+  const serializeProduct = (p) => ({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    originalPrice: p.originalPrice ?? null,
+    image: p.image,
+    rating: p.rating,
+    reviews: p.reviews,
+    isNew: !!p.isNew,
+    isSale: !!p.isSale,
+    category: p.category,
+    colors: Array.isArray(p.colors) ? [...p.colors] : [],
+    sizes: Array.isArray(p.sizes) ? [...p.sizes] : [],
+  });
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -118,26 +133,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
     </Animated.View>
   );
 
-  const renderSearchBar = () => (
-    <Animated.View
-      style={[
-        styles.searchContainer,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        }
-      ]}
-    >
-      <TouchableOpacity 
-        style={styles.searchTouchable}
-        onPress={() => navigation.navigate('Search')}
-        activeOpacity={0.8}
-      >
-        <Feather name="search" size={18} color={Colors.textSecondary} />
-        <Text style={styles.searchPlaceholder}>Search for elegant clothing...</Text>
-      </TouchableOpacity>
-    </Animated.View>
-  );
+  
 
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const bannerScrollRef = useRef(null);
@@ -292,7 +288,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
           <View style={styles.horizontalFeaturedCard}>
             <ProductCard
               product={item}
-              onPress={() => navigation.navigate('ProductDetail', { product: item })}
+              onPress={() => navigation.navigate('ProductDetail', { product: serializeProduct(item) })}
               onToggleWishlist={() => {}}
             />
           </View>
@@ -330,7 +326,6 @@ const HomeScreen = ({ navigation, onScroll }) => {
     <SafeAreaView style={styles.container}>
       {renderHeader()}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {renderSearchBar()}
         {renderBanner()}
         {renderCategories()}
         {renderNewArrivals()}
@@ -504,6 +499,7 @@ const styles = StyleSheet.create({
     width: width,
     paddingHorizontal: 20,
     position: 'relative',
+    marginTop : 20
   },
   bannerImageContainer: {
     height: 240,

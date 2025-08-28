@@ -14,6 +14,20 @@ import { featuredProducts, newArrivals } from '../data/mockData';
 import ProductCard from '../components/ProductCard';
 
 const SearchScreen = ({ navigation, onScroll }) => {
+  const serializeProduct = (p) => ({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    originalPrice: p.originalPrice ?? null,
+    image: p.image,
+    rating: p.rating,
+    reviews: p.reviews,
+    isNew: !!p.isNew,
+    isSale: !!p.isSale,
+    category: p.category,
+    colors: Array.isArray(p.colors) ? [...p.colors] : [],
+    sizes: Array.isArray(p.sizes) ? [...p.sizes] : [],
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [recentSearches] = useState(['Dresses', 'Blouses', 'Elegant', 'Evening wear']);
@@ -84,7 +98,7 @@ const SearchScreen = ({ navigation, onScroll }) => {
           <View style={[styles.productCardContainer, index % 2 === 1 && styles.productCardRight]}>
             <ProductCard
               product={item}
-              onPress={() => navigation.navigate('ProductDetail', { product: item })}
+              onPress={() => navigation.navigate('ProductDetail', { product: serializeProduct(item) })}
               onToggleWishlist={() => {}}
             />
           </View>
