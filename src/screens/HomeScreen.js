@@ -19,7 +19,7 @@ import { featuredProducts, categories, newArrivals, bannerData } from '../data/m
 import ProductCard from '../components/ProductCard';
 import CategoryCard from '../components/CategoryCard';
 import CustomButton from '../components/CustomButton';
-import  Naz_Logo from '../assets/images/naz_logo.jpeg'
+import Naz_Logo from '../assets/images/naz_logo.jpeg'
 
 const { width } = Dimensions.get('window');
 
@@ -79,12 +79,12 @@ const HomeScreen = ({ navigation, onScroll }) => {
         useNativeDriver: true,
       }),
     ]).start();
-    
+
     navigation.navigate('Cart');
   };
 
   const renderHeader = () => (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.headerShadowContainer,
         {
@@ -94,46 +94,46 @@ const HomeScreen = ({ navigation, onScroll }) => {
       ]}
     >
       <View style={styles.header}>
-      <Animated.View 
-        style={[
-          styles.logoContainer,
-          {
-            transform: [{ scale: scaleAnim }],
-          }
-        ]}
-      >
-        <Image source={Naz_Logo} style={styles.logoImage} resizeMode="contain" />
-        <View style={styles.brandTextContainer}>
-          <Text style={styles.brandName}>Naz's Collection</Text>
-          <Text style={styles.brandTagline}>WOMEN'S FASHION</Text>
-        </View>
-      </Animated.View>
-      <TouchableOpacity 
-        style={styles.cartButton}
-        onPress={handleCartPress}
-        activeOpacity={0.7}
-      >
-        <Animated.View style={{ transform: [{ scale: cartBounceAnim }] }}>
-          <Feather
-           name="shopping-bag"
-            size={24}
-             color={Colors.textPrimary}
-              />
-        </Animated.View>
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.cartBadge,
-            { transform: [{ scale: cartBounceAnim }] }
+            styles.logoContainer,
+            {
+              transform: [{ scale: scaleAnim }],
+            }
           ]}
         >
-          <Text style={styles.cartBadgeText}>3</Text>
+          <Image source={Naz_Logo} style={styles.logoImage} resizeMode="contain" />
+          <View style={styles.brandTextContainer}>
+            <Text style={styles.brandName}>Naz's Collection</Text>
+            <Text style={styles.brandTagline}>WOMEN'S FASHION</Text>
+          </View>
         </Animated.View>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.cartButton}
+          onPress={handleCartPress}
+          activeOpacity={0.7}
+        >
+          <Animated.View style={{ transform: [{ scale: cartBounceAnim }] }}>
+            <Feather
+              name="shopping-bag"
+              size={24}
+              color={Colors.textPrimary}
+            />
+          </Animated.View>
+          <Animated.View
+            style={[
+              styles.cartBadge,
+              { transform: [{ scale: cartBounceAnim }] }
+            ]}
+          >
+            <Text style={styles.cartBadgeText}>3</Text>
+          </Animated.View>
+        </TouchableOpacity>
       </View>
     </Animated.View>
   );
 
-  
+
 
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const bannerScrollRef = useRef(null);
@@ -159,7 +159,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
   const renderBannerItem = ({ item }) => (
     <View style={styles.bannerContainer}>
       <View style={styles.bannerImageContainer}>
-        <Image 
+        <Image
           source={{ uri: item.image }}
           style={styles.bannerImage}
         />
@@ -256,9 +256,9 @@ const HomeScreen = ({ navigation, onScroll }) => {
           renderItem={({ item }) => (
             <CategoryCard
               category={item}
-              onPress={() => navigation.navigate('Products', { 
+              onPress={() => navigation.navigate('Products', {
                 screen: 'Products',
-                params: { 
+                params: {
                   categoryName: item.name,
                   products: [...featuredProducts, ...newArrivals].filter(
                     p => p.category === item.name
@@ -289,7 +289,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
             <ProductCard
               product={item}
               onPress={() => navigation.navigate('ProductDetail', { product: serializeProduct(item) })}
-              onToggleWishlist={() => {}}
+              onToggleWishlist={() => { }}
             />
           </View>
         )}
@@ -311,7 +311,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
             <ProductCard
               product={item}
               onPress={() => navigation.navigate('ProductDetail', { product: item })}
-              onToggleWishlist={() => {}}
+              onToggleWishlist={() => { }}
             />
           </View>
         )}
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     width: width,
     paddingHorizontal: 20,
     position: 'relative',
-    marginTop : 20
+    marginTop: 20
   },
   bannerImageContainer: {
     height: 240,

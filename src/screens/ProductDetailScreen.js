@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import useCartStore from '../store/cartStore';
+import { Colors } from '../constants/Colors';
 
 const { width } = Dimensions.get('window');
 
@@ -233,7 +234,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
           style={styles.quantityButton}
           onPress={() => setQuantity(Math.max(1, quantity - 1))}
         >
-          <Text style={styles.quantityButtonText}>-</Text>
+          <Text style={styles.quantityButtonText}>−</Text>
         </TouchableOpacity>
         <Text style={styles.quantityText}>{quantity}</Text>
         <TouchableOpacity
@@ -599,7 +600,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -607,7 +608,7 @@ const styles = StyleSheet.create({
   },
   quantityButtonText: {
     fontSize: 20,
-    color: '#333333',
+    color: Colors.textLight,
     fontWeight: 'bold',
   },
   quantityText: {

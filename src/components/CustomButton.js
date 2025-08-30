@@ -12,6 +12,7 @@ const CustomButton = ({
   style,
   textStyle 
 }) => {
+  
   const getButtonStyle = () => {
     const baseStyle = [styles.button, styles[size]];
     
