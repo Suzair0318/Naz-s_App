@@ -8,6 +8,7 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import useCartStore from '../store/cartStore';
 import CustomButton from '../components/CustomButton';
+import PremiumAlert from '../components/PremiumAlert';
 
 const CheckoutScreen = ({ route, navigation }) => {
   const { buyNowItem, items: navItems, totals: navTotals } = route?.params || {};
@@ -27,7 +28,7 @@ const CheckoutScreen = ({ route, navigation }) => {
   const [shipping, setShipping] = useState(
     navTotals?.shipping != null ? navTotals.shipping : (items.length > 0 ? 350 : 0)
   );
-  const total = navTotals?.total != null ? navTotals.total : subtotal + shipping;
+  const total = useMemo(() => subtotal + shipping, [subtotal, shipping]);
 
   // Detect user's city via IP and set shipping: Karachi = 250, Others = 350
   useEffect(() => {
@@ -67,6 +68,13 @@ const CheckoutScreen = ({ route, navigation }) => {
   const [errors, setErrors] = useState({});
   const [focusedField, setFocusedField] = useState(null);
   const [askedLocationOnce, setAskedLocationOnce] = useState(false);
+  
+  // Premium Alert States
+  const [showLocationAlert, setShowLocationAlert] = useState(false);
+  const [showPermissionAlert, setShowPermissionAlert] = useState(false);
+  
+  // Scroll reference
+  const scrollViewRef = React.useRef(null);
 
   // Ask permission and get precise location to improve city detection
   useEffect(() => {
@@ -130,34 +138,16 @@ const CheckoutScreen = ({ route, navigation }) => {
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
           );
         } else {
-          // Not granted or blocked: force user decision
-          Alert.alert(
-            'Location required',
-            'Please allow location to auto-detect your city for correct shipping charges.',
-            [
-              { text: 'Open Settings', onPress: () => openSettings() },
-              { text: 'Try Again', onPress: () => { askPermissionAndLocate(); } },
-            ],
-            { cancelable: false }
-          );
+          // Not granted or blocked: show premium alert
+          setShowPermissionAlert(true);
         }
       } catch (e) {
         // silently fail; IP fallback remains
       }
     };
 
-    // Single button: user must choose Allow to proceed
-    Alert.alert(
-      'Use your current location?',
-      'Allow access to your location to auto-fill your address and apply the correct shipping charges.',
-      [
-        {
-          text: 'Allow',
-          onPress: () => { askPermissionAndLocate(); },
-        },
-      ],
-      { cancelable: false }
-    );
+    // Show premium location alert
+    setShowLocationAlert(true);
   }, [askedLocationOnce, items.length]);
 
   const validateField = (field, value) => {
@@ -191,7 +181,8 @@ const CheckoutScreen = ({ route, navigation }) => {
 
   const placeOrder = async () => {
     if (!validateForm()) {
-      Alert.alert('Invalid Details', 'Please correct the highlighted fields.');
+      // Scroll to top to show validation errors
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       return;
     }
     
@@ -277,7 +268,7 @@ const CheckoutScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           {/* <Text style={styles.title}>Checkout</Text> */}
 
           <View style={styles.section}>
@@ -362,6 +353,113 @@ const CheckoutScreen = ({ route, navigation }) => {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Premium Location Permission Alert */}
+      <PremiumAlert
+        visible={showLocationAlert}
+        title="Use your current location?"
+        message="Allow access to your location to auto-fill your address and apply the correct shipping charges."
+        icon="location-outline"
+        iconColor={Colors.primary}
+        buttons={[
+          {
+            text: 'Allow Location Access',
+            style: 'primary',
+            icon: 'checkmark-circle-outline',
+            onPress: () => {
+              const askPermissionAndLocate = async () => {
+                try {
+                  const perm = Platform.select({
+                    android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+                    ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+                  });
+                  if (!perm) return;
+                  const status = await check(perm);
+                  let finalStatus = status;
+                  if (status !== RESULTS.GRANTED) {
+                    finalStatus = await request(perm);
+                  }
+                  if (finalStatus === RESULTS.GRANTED) {
+                    Geolocation.getCurrentPosition(
+                      async ({ coords }) => {
+                        try {
+                          const { latitude, longitude } = coords;
+                          const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=en`;
+                          const resp = await fetch(url, {
+                            headers: { 'User-Agent': 'NazsApp/1.0 (ReactNative)', 'Accept-Language': 'en' },
+                          });
+                          const data = await resp.json();
+                          const addr = data?.address || {};
+                          const foundCity = (
+                            addr.city || addr.town || addr.village || addr.municipality || addr.county || ''
+                          ).toString();
+                          const parts = [
+                            [addr.house_number, addr.road].filter(Boolean).join(' '),
+                            addr.neighbourhood || addr.suburb || addr.quarter || addr.hamlet,
+                            addr.city_district || addr.district,
+                            foundCity,
+                            addr.state,
+                            addr.postcode,
+                          ].filter(Boolean);
+                          const line1 = parts.slice(0, 4).join(', ');
+                          if (foundCity) {
+                            setDetectedCity(foundCity);
+                            setCity((prev) => prev || foundCity);
+                            const isKarachi = foundCity.toLowerCase().includes('karachi');
+                            setShipping(items.length > 0 ? (isKarachi ? 250 : 350) : 0);
+                          }
+                          if (line1) {
+                            setAddress((prev) => prev || line1);
+                          }
+                        } catch (e) {
+                          // ignore reverse geocode errors
+                        }
+                      },
+                      (error) => {
+                        // ignore geolocation error; IP-based fallback already applied
+                      },
+                      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+                    );
+                  } else {
+                    setShowPermissionAlert(true);
+                  }
+                } catch (e) {
+                  // silently fail; IP fallback remains
+                }
+              };
+              askPermissionAndLocate();
+            }
+          }
+        ]}
+        onDismiss={() => setShowLocationAlert(false)}
+      />
+
+      {/* Premium Permission Required Alert */}
+      <PremiumAlert
+        visible={showPermissionAlert}
+        title="Location Permission Required"
+        message="Please allow location access in settings to auto-detect your city for accurate shipping charges."
+        icon="settings-outline"
+        iconColor="#FF6B35"
+        buttons={[
+          {
+            text: 'Open Settings',
+            style: 'primary',
+            icon: 'settings-outline',
+            onPress: () => openSettings()
+          },
+          {
+            text: 'Try Again',
+            style: 'secondary',
+            icon: 'refresh-outline',
+            onPress: () => {
+              setShowPermissionAlert(false);
+              setTimeout(() => setShowLocationAlert(true), 300);
+            }
+          }
+        ]}
+        onDismiss={() => setShowPermissionAlert(false)}
+      />
     </SafeAreaView>
   );
 };
