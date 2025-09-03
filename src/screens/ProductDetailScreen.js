@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Dimensions,
   FlatList,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -15,6 +16,55 @@ import useCartStore from '../store/cartStore';
 import { Colors } from '../constants/Colors';
 
 const { width } = Dimensions.get('window');
+
+// Reusable bounce touchable for consistent UX feedback
+const BounceTouchable = ({
+  onPress,
+  disabled,
+  children,
+  style,
+  activeOpacity = 0.9,
+  scaleTo = 1.08,
+  ...rest
+}) => {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const handlePress = () => {
+    if (disabled) return;
+    Animated.sequence([
+      Animated.timing(scale, {
+        toValue: scaleTo,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scale, {
+        toValue: 0.98,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scale, {
+        toValue: 1,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onPress && onPress();
+    });
+  };
+
+  return (
+    <Animated.View style={[style, { transform: [{ scale }] }]}>
+      <TouchableOpacity
+        onPress={handlePress}
+        disabled={disabled}
+        activeOpacity={activeOpacity}
+        {...rest}
+      >
+        {children}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 
 const ProductDetailScreen = ({ route, navigation }) => {
   const { product } = route?.params || {};
@@ -77,12 +127,12 @@ const ProductDetailScreen = ({ route, navigation }) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <BounceTouchable onPress={() => navigation.goBack()} style={styles.backButton}>
         <Text style={styles.backIcon}>←</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.wishlistButton}>
+      </BounceTouchable>
+      <BounceTouchable style={styles.wishlistButton}>
         <Text style={styles.wishlistIcon}>♡</Text>
-      </TouchableOpacity>
+      </BounceTouchable>
     </View>
   );
 
@@ -121,7 +171,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
         {/* Image indicators */}
         <View style={styles.imageIndicators}>
           {productImages.map((_, index) => (
-            <TouchableOpacity
+            <BounceTouchable
               key={index}
               style={[
                 styles.indicator,
@@ -181,7 +231,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
       <Text style={[styles.selectorTitle, { fontSize: 14 }]}>Size</Text>
       <View style={styles.sizeContainer}>
         {product.sizes?.map((size) => (
-          <TouchableOpacity
+          <BounceTouchable
             key={size}
             style={[
               styles.sizeOption,
@@ -196,7 +246,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
             ]}>
               {size}
             </Text>
-          </TouchableOpacity>
+          </BounceTouchable>
         ))}
       </View>
     </View>
@@ -207,7 +257,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
       <Text style={[styles.selectorTitle, { fontSize: 14 }]}>Color</Text>
       <View style={styles.colorContainer}>
         {product.colors?.map((color) => (
-          <TouchableOpacity
+          <BounceTouchable
             key={color}
             style={styles.swatchWrapper}
             onPress={() => setSelectedColor(color)}
@@ -220,7 +270,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
                 selectedColor === color && styles.selectedColorSwatch,
               ]}
             />
-          </TouchableOpacity>
+          </BounceTouchable>
         ))}
       </View>
     </View>
@@ -230,19 +280,19 @@ const ProductDetailScreen = ({ route, navigation }) => {
     <View style={styles.selectorContainer}>
       <Text style={styles.selectorTitle}>Quantity</Text>
       <View style={styles.quantityContainer}>
-        <TouchableOpacity
+        <BounceTouchable
           style={styles.quantityButton}
           onPress={() => setQuantity(Math.max(1, quantity - 1))}
         >
           <Text style={styles.quantityButtonText}>−</Text>
-        </TouchableOpacity>
+        </BounceTouchable>
         <Text style={styles.quantityText}>{quantity}</Text>
-        <TouchableOpacity
+        <BounceTouchable
           style={styles.quantityButton}
           onPress={() => setQuantity(quantity + 1)}
         >
           <Text style={styles.quantityButtonText}>+</Text>
-        </TouchableOpacity>
+        </BounceTouchable>
       </View>
     </View>
   );
@@ -277,7 +327,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
 
   const renderActionButtons = () => (
     <View style={styles.actionContainer}>
-      <TouchableOpacity
+      <BounceTouchable
         style={styles.addToBagButton}
         onPress={() => {
           if (!product) return;
@@ -292,7 +342,6 @@ const ProductDetailScreen = ({ route, navigation }) => {
           addToCart(payload, quantity);
           navigation.navigate('MainTabs', { screen: 'Cart' });
         }}
-        activeOpacity={0.8}
       >
         <LinearGradient
           colors={['#FFFFFF', '#F8F8F8']}
@@ -302,8 +351,8 @@ const ProductDetailScreen = ({ route, navigation }) => {
         >
           <Text style={styles.addToBagText}>Add to Cart</Text>
         </LinearGradient>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </BounceTouchable>
+      <BounceTouchable
         style={styles.buyNowButton}
         onPress={() => {
           if (!product) return;
@@ -318,7 +367,6 @@ const ProductDetailScreen = ({ route, navigation }) => {
           };
           navigation.navigate('Checkout', { buyNowItem: buyItem });
         }}
-        activeOpacity={0.8}
       >
         <LinearGradient
           colors={['#000000', '#333333']}
@@ -328,13 +376,13 @@ const ProductDetailScreen = ({ route, navigation }) => {
         >
           <Text style={styles.buyNowText}>Buy Now</Text>
         </LinearGradient>
-      </TouchableOpacity>
+      </BounceTouchable>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      {renderHeader()}
+      {/* {renderHeader()} */}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {renderImageCarousel()}
         {renderProductInfo()}

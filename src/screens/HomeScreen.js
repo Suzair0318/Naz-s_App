@@ -43,6 +43,8 @@ const HomeScreen = ({ navigation, onScroll }) => {
   const slideAnim = useRef(new Animated.Value(-50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const cartBounceAnim = useRef(new Animated.Value(1)).current;
+  const viewAllButtonScale = useRef(new Animated.Value(1)).current;
+  const premiumButtonScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     // Header entrance animation
@@ -69,6 +71,11 @@ const HomeScreen = ({ navigation, onScroll }) => {
     // Cart bounce animation
     Animated.sequence([
       Animated.timing(cartBounceAnim, {
+        toValue: 0.8,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cartBounceAnim, {
         toValue: 1.2,
         duration: 150,
         useNativeDriver: true,
@@ -80,7 +87,41 @@ const HomeScreen = ({ navigation, onScroll }) => {
       }),
     ]).start();
 
-    navigation.navigate('Cart');
+    setTimeout(() => navigation.navigate('Cart'), 100);
+  };
+
+  const handleViewAllPress = () => {
+    Animated.sequence([
+      Animated.timing(viewAllButtonScale, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(viewAllButtonScale, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setTimeout(() => navigation.navigate('Products'), 50);
+  };
+
+  const handlePremiumButtonPress = () => {
+    Animated.sequence([
+      Animated.timing(premiumButtonScale, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(premiumButtonScale, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setTimeout(() => navigation.navigate('Products'), 50);
   };
 
   const renderHeader = () => (
@@ -108,32 +149,9 @@ const HomeScreen = ({ navigation, onScroll }) => {
             <Text style={styles.brandTagline}>WOMEN'S FASHION</Text>
           </View>
         </Animated.View>
-        <TouchableOpacity
-          style={styles.cartButton}
-          onPress={handleCartPress}
-          activeOpacity={0.7}
-        >
-          <Animated.View style={{ transform: [{ scale: cartBounceAnim }] }}>
-            <Feather
-              name="shopping-bag"
-              size={24}
-              color={Colors.textPrimary}
-            />
-          </Animated.View>
-          <Animated.View
-            style={[
-              styles.cartBadge,
-              { transform: [{ scale: cartBounceAnim }] }
-            ]}
-          >
-            <Text style={styles.cartBadgeText}>3</Text>
-          </Animated.View>
-        </TouchableOpacity>
       </View>
     </Animated.View>
   );
-
-
 
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const bannerScrollRef = useRef(null);
@@ -177,16 +195,22 @@ const HomeScreen = ({ navigation, onScroll }) => {
           <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
         </View>
         <View style={styles.bannerButtonContainer}>
-          <TouchableOpacity style={styles.premiumButton} activeOpacity={0.8}>
-            <LinearGradient
-              colors={['#C0C0C0', '#A8A8A8', '#909090']}
-              style={styles.buttonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+          <Animated.View style={[{ transform: [{ scale: premiumButtonScale }] }]}>
+            <TouchableOpacity
+              style={styles.premiumButton}
+              activeOpacity={0.9}
+              onPress={handlePremiumButtonPress}
             >
-              <Text style={styles.premiumButtonText}>{item.buttonText}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={['#C0C0C0', '#A8A8A8', '#909090']}
+                style={styles.buttonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Text style={styles.premiumButtonText}>{item.buttonText}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
       </View>
     </View>
@@ -226,14 +250,20 @@ const HomeScreen = ({ navigation, onScroll }) => {
     </View>
   );
 
-  const renderSectionHeader = (title, actionText, onActionPress) => (
+  const renderSectionHeader = (title, actionText) => (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
       {actionText && (
-        <TouchableOpacity style={styles.viewAllButton} onPress={onActionPress}>
-          <Text style={styles.viewAllText}>{actionText}</Text>
-          <View style={styles.viewAllArrow} />
-        </TouchableOpacity>
+        <Animated.View style={[{ transform: [{ scale: viewAllButtonScale }] }]}>
+          <TouchableOpacity 
+            style={styles.viewAllButton} 
+            onPress={handleViewAllPress}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.viewAllText}>{actionText}</Text>
+            <View style={styles.viewAllArrow} />
+          </TouchableOpacity>
+        </Animated.View>
       )}
     </View>
   );
@@ -242,10 +272,16 @@ const HomeScreen = ({ navigation, onScroll }) => {
     <View style={styles.categoriesSection}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Shop by Category</Text>
-        <TouchableOpacity style={styles.viewAllButton}>
-          <Text style={styles.viewAllText}>View All</Text>
-          <View style={styles.viewAllArrow} />
-        </TouchableOpacity>
+        <Animated.View style={[{ transform: [{ scale: viewAllButtonScale }] }]}>
+          <TouchableOpacity 
+            style={styles.viewAllButton}
+            onPress={handleViewAllPress}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.viewAllText}>View All</Text>
+            <View style={styles.viewAllArrow} />
+          </TouchableOpacity>
+        </Animated.View>
       </View>
       <View style={styles.categoriesContainer}>
         <FlatList
@@ -256,15 +292,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
           renderItem={({ item }) => (
             <CategoryCard
               category={item}
-              onPress={() => navigation.navigate('Products', {
-                screen: 'Products',
-                params: {
-                  categoryName: item.name,
-                  products: [...featuredProducts, ...newArrivals].filter(
-                    p => p.category === item.name
-                  )
-                }
-              })}
+              onPress={() => navigation.navigate('Products', { categoryName: item.name })}
             />
           )}
           contentContainerStyle={styles.categoriesList}
@@ -272,8 +300,6 @@ const HomeScreen = ({ navigation, onScroll }) => {
       </View>
     </View>
   );
-
-
 
 
   const renderFeaturedProducts = () => (

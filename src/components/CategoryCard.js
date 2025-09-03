@@ -1,12 +1,39 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 
 const CategoryCard = ({ category, onPress }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1.05,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    if (onPress) {
+      setTimeout(() => onPress(), 50);
+    }
+  };
+
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.9}>
+    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
+      <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.95}>
       <View style={styles.imageContainer}>
         <Image source={{ uri: category.image }} style={styles.image} />
         <LinearGradient
@@ -22,7 +49,8 @@ const CategoryCard = ({ category, onPress }) => {
         <Text style={styles.itemCount}>{category.itemCount} items</Text>
       </View>
       <View style={styles.premiumBorder} />
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 

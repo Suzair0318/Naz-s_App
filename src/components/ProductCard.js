@@ -1,32 +1,82 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 
 const ProductCard = ({ product, onPress, onToggleWishlist }) => {
-  const renderPriceSection = () => (
-    <View style={styles.priceContainer}>
-      <Text style={styles.price}>${product.price}</Text>
-      {product.originalPrice && (
-        <Text style={styles.originalPrice}>${product.originalPrice}</Text>
-      )}
-    </View>
-  );
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const wishlistScaleAnim = useRef(new Animated.Value(1)).current;
 
-  const renderBadges = () => (
-    <View style={styles.badgeContainer}>
-      {product.isNew && (
-        <View style={[styles.badge, styles.newBadge]}>
-          <Text style={styles.badgeText}>NEW</Text>
+  const handleWishlistToggle = () => {
+    // Wishlist button animation
+    Animated.sequence([
+      Animated.timing(wishlistScaleAnim, {
+        toValue: 0.8,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(wishlistScaleAnim, {
+        toValue: 1.1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(wishlistScaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setIsWishlisted(!isWishlisted);
+    if (onToggleWishlist) {
+      onToggleWishlist();
+    }
+  };
+  const calculateDiscount = () => {
+    if (product.originalPrice && product.price) {
+      const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+      return discount;
+    }
+    return 0;
+  };
+
+  const renderPriceSection = () => {
+    const discountPercent = calculateDiscount();
+    
+    return (
+      <View style={styles.priceContainer}>
+        <View style={styles.priceRow}>
+          <Text style={styles.price}>${product.price}</Text>
+          {product.originalPrice && (
+            <>
+              <Text style={styles.originalPrice}>${product.originalPrice}</Text>
+            </>
+          )}
         </View>
-      )}
-      {product.isSale && (
-        <View style={[styles.badge, styles.saleBadge]}>
-          <Text style={styles.badgeText}>SALE</Text>
-        </View>
-      )}
-    </View>
-  );
+      </View>
+    );
+  };
+
+  const renderBadges = () => {
+    const discountPercent = calculateDiscount();
+    
+    return (
+      <View style={styles.badgeContainer}>
+        {product.isNew && (
+          <View style={[styles.badge, styles.newBadge]}>
+            <Text style={styles.badgeText}>NEW</Text>
+          </View>
+        )}
+        {product.isSale && discountPercent > 0 && (
+          <View style={[styles.badge, styles.saleBadge]}>
+            <Text style={styles.badgeText}>-{discountPercent}%</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
 
   const renderRating = () => (
     <View style={styles.ratingContainer}>
@@ -35,18 +85,59 @@ const ProductCard = ({ product, onPress, onToggleWishlist }) => {
     </View>
   );
 
+  const handleCardPress = () => {
+    // Card press animation - bounce like wishlist
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1.05,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    if (onPress) {
+      setTimeout(() => onPress(), 50);
+    }
+  };
+
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.9}>
+    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
+      <TouchableOpacity 
+        style={styles.container} 
+        onPress={handleCardPress} 
+        activeOpacity={0.95}
+      >
       <View style={styles.imageContainer}>
         <Image source={{ uri: product.image }} style={styles.image} />
         {renderBadges()}
         <View style={styles.buttonRow}>
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.wishlistButton]}
-            onPress={onToggleWishlist}
-          >
-            <Text style={styles.wishlistIcon}>♡</Text>
-          </TouchableOpacity>
+          <Animated.View style={[{ transform: [{ scale: wishlistScaleAnim }] }]}>
+            <TouchableOpacity 
+              style={[
+                styles.actionButton, 
+                styles.wishlistButton,
+                isWishlisted && styles.wishlistButtonActive
+              ]}
+              onPress={handleWishlistToggle}
+              activeOpacity={0.8}
+            >
+              <Ionicons 
+                name={isWishlisted ? "heart" : "heart-outline"} 
+                size={16} 
+                color={isWishlisted ? "#FFFFFF" : Colors.primary}
+              />
+            </TouchableOpacity>
+          </Animated.View>
         </View>
       </View>
       
@@ -55,7 +146,8 @@ const ProductCard = ({ product, onPress, onToggleWishlist }) => {
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
         {renderPriceSection()}
       </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
@@ -82,8 +174,8 @@ const styles = StyleSheet.create({
   },
   badgeContainer: {
     position: 'absolute',
-    top: 8,
-    left: 8,
+    top: 0,
+    left: 0,
     flexDirection: 'row',
   },
   badge: {
@@ -96,7 +188,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.success,
   },
   saleBadge: {
-    backgroundColor: Colors.accent,
+    backgroundColor: '#FF6B35',
+  },
+  discountBadge: {
+    backgroundColor: '#FF4444',
   },
   badgeText: {
     color: '#FFFFFF',
@@ -105,10 +200,10 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 0,
+    right: 0,
+    padding: 0,
     flexDirection: 'column',
-    gap: 8,
   },
   actionButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
@@ -136,10 +231,20 @@ const styles = StyleSheet.create({
   },
   wishlistButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderTopLeftRadius: 4,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 0,
+    borderTopRightRadius: 0,
   },
-  wishlistIcon: {
-    fontSize: 16,
-    color: Colors.primary,
+  wishlistButtonActive: {
+    backgroundColor: '#FF4444',
+    borderColor: '#FF4444',
+    shadowColor: '#FF4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   contentContainer: {
     padding: 12,
@@ -175,9 +280,12 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
   },
   priceContainer: {
+    marginBottom: 8,
+  },
+  priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    flexWrap: 'wrap',
   },
   price: {
     fontSize: 15,
@@ -189,6 +297,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
     textDecorationLine: 'line-through',
+  },
+  discountInline: {
+    fontSize: 11,
+    color: '#FF4444',
+    fontWeight: '600',
+    marginLeft: 4,
   },
 });
 

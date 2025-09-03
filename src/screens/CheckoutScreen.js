@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, Image, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, Animated } from 'react-native';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, FlatList, Image, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, Animated, Modal } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Geolocation from 'react-native-geolocation-service';
 import { PERMISSIONS, RESULTS, request, check, openSettings } from 'react-native-permissions';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -72,9 +73,13 @@ const CheckoutScreen = ({ route, navigation }) => {
   // Premium Alert States
   const [showLocationAlert, setShowLocationAlert] = useState(false);
   const [showPermissionAlert, setShowPermissionAlert] = useState(false);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
   
-  // Scroll reference
+  // Animation references
   const scrollViewRef = React.useRef(null);
+  const successScaleAnim = useRef(new Animated.Value(0)).current;
+  const successOpacityAnim = useRef(new Animated.Value(0)).current;
+  const confettiAnim = useRef(new Animated.Value(0)).current;
 
   // Ask permission and get precise location to improve city detection
   useEffect(() => {
@@ -194,10 +199,37 @@ const CheckoutScreen = ({ route, navigation }) => {
       if (!buyNowItem) {
         clearCart();
       }
-      Alert.alert('Order Placed Successfully! 🎉', 'Thank you for your purchase. You will receive a confirmation email shortly.', [
-        { text: 'Continue Shopping', onPress: () => navigation.navigate('MainTabs', { screen: 'Home' }) },
-      ]);
+      // Show premium success modal
+      setShowOrderSuccess(true);
+      // Start animations
+      Animated.sequence([
+        Animated.timing(successOpacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(successScaleAnim, {
+          toValue: 1,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(confettiAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }, 2000);
+  };
+
+  const handleContinueShopping = () => {
+    // Reset animations
+    successScaleAnim.setValue(0);
+    successOpacityAnim.setValue(0);
+    confettiAnim.setValue(0);
+    setShowOrderSuccess(false);
+    navigation.navigate('MainTabs', { screen: 'Home' });
   };
 
   const renderInput = (field, placeholder, value, setValue, iconName, keyboardType = 'default', multiline = false) => {
@@ -460,6 +492,132 @@ const CheckoutScreen = ({ route, navigation }) => {
         ]}
         onDismiss={() => setShowPermissionAlert(false)}
       />
+
+      {/* Premium Order Success Modal */}
+      <Modal
+        visible={showOrderSuccess}
+        transparent={true}
+        animationType="none"
+        statusBarTranslucent={true}
+      >
+        <Animated.View 
+          style={[
+            styles.successModalOverlay,
+            { opacity: successOpacityAnim }
+          ]}
+        >
+          <Animated.View 
+            style={[
+              styles.successModalContainer,
+              { 
+                transform: [{ scale: successScaleAnim }],
+                opacity: successOpacityAnim 
+              }
+            ]}
+          >
+            <LinearGradient
+              colors={['#FFFFFF', '#F8F9FA']}
+              style={styles.modalGradientBackground}
+            >
+              {/* Confetti Animation */}
+              <Animated.View 
+                style={[
+                  styles.confettiContainer,
+                  {
+                    opacity: confettiAnim,
+                    transform: [{
+                      translateY: confettiAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [-30, 10]
+                      })
+                    }]
+                  }
+                ]}
+              >
+                <Text style={styles.confettiEmoji}>🎉</Text>
+                <Text style={styles.confettiEmoji}>✨</Text>
+                <Text style={styles.confettiEmoji}>🛍️</Text>
+                <Text style={styles.confettiEmoji}>💎</Text>
+                <Text style={styles.confettiEmoji}>🎊</Text>
+              </Animated.View>
+
+              {/* Success Icon with Premium Background */}
+              <Animated.View 
+                style={[
+                  styles.successIconContainer,
+                  {
+                    transform: [{ scale: successScaleAnim }]
+                  }
+                ]}
+              >
+                <LinearGradient
+                  colors={['#4CAF50', '#45A049']}
+                  style={styles.successIconGradient}
+                >
+                  <Ionicons name="checkmark-circle" size={60} color="#FFFFFF" />
+                </LinearGradient>
+              </Animated.View>
+
+              {/* Brand Section */}
+              <View style={styles.brandSection}>
+                <Text style={styles.brandName}>Naz's Collection</Text>
+                <View style={styles.brandDivider} />
+              </View>
+
+              {/* Success Content */}
+              <View style={styles.successContent}>
+                <Text style={styles.successTitle}>🎉 Order Placed Successfully!</Text>
+                <Text style={styles.successSubtitle}>Thank you for your purchase!</Text>
+                <Text style={styles.successMessage}>
+                  Your order has been confirmed and will be carefully prepared for delivery.
+                </Text>
+                
+                {/* Order Summary Card */}
+                <View style={styles.orderSummaryCard}>
+                  <LinearGradient
+                    colors={[Colors.primary + '08', Colors.primary + '15']}
+                    style={styles.summaryGradient}
+                  >
+                    <View style={styles.summaryRow}>
+                      <View style={styles.summaryIconContainer}>
+                        <Ionicons name="receipt-outline" size={18} color={Colors.primary} />
+                      </View>
+                      <Text style={styles.summaryText}>Order Total: ${total.toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.summaryRow}>
+                      <View style={styles.summaryIconContainer}>
+                        <Ionicons name="time-outline" size={18} color={Colors.primary} />
+                      </View>
+                      <Text style={styles.summaryText}>Delivery: 2-3 business days</Text>
+                    </View>
+                    <View style={[styles.summaryRow, { marginBottom: 0 }]}>
+                      <View style={styles.summaryIconContainer}>
+                        <Ionicons name="mail-outline" size={18} color={Colors.primary} />
+                      </View>
+                      <Text style={styles.summaryText}>Confirmation email sent</Text>
+                    </View>
+                  </LinearGradient>
+                </View>
+              </View>
+
+              {/* Premium Action Button */}
+              <TouchableOpacity 
+                style={styles.premiumActionButton}
+                onPress={handleContinueShopping}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={[Colors.primary, '#2C2C2C']}
+                  style={styles.actionButtonGradient}
+                >
+                  <Ionicons name="storefront-outline" size={20} color="#FFFFFF" />
+                  <Text style={styles.actionButtonText}>Continue Shopping</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </LinearGradient>
+          </Animated.View>
+        </Animated.View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -710,6 +868,173 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.bold,
     color: Colors.textLight,
     letterSpacing: 0.3,
+  },
+
+  // Premium Order Success Modal Styles
+  successModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  successModalContainer: {
+    borderRadius: 30,
+    alignItems: 'center',
+    maxWidth: 400,
+    width: '100%',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.3,
+    shadowRadius: 25,
+    elevation: 20,
+    overflow: 'hidden',
+  },
+  modalGradientBackground: {
+    paddingVertical: 40,
+    paddingHorizontal: 30,
+    alignItems: 'center',
+    width: '100%',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  confettiContainer: {
+    position: 'absolute',
+    top: -15,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    height: 50,
+    zIndex: 10,
+  },
+  confettiEmoji: {
+    fontSize: 20,
+    opacity: 0.9,
+  },
+  successIconContainer: {
+    marginBottom: 20,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  successIconGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  brandSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  brandName: {
+    fontSize: Fonts.sizes.lg,
+    fontWeight: Fonts.weights.bold,
+    color: Colors.textPrimary,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  brandDivider: {
+    width: 50,
+    height: 2,
+    backgroundColor: Colors.primary,
+    marginTop: 6,
+    borderRadius: 1,
+  },
+  successContent: {
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  successTitle: {
+    fontSize: Fonts.sizes.xl,
+    fontWeight: Fonts.weights.bold,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 8,
+    letterSpacing: -0.3,
+  },
+  successSubtitle: {
+    fontSize: Fonts.sizes.md,
+    fontWeight: Fonts.weights.semiBold,
+    color: Colors.primary,
+    textAlign: 'center',
+    marginBottom: 12,
+    letterSpacing: 0.2,
+  },
+  successMessage: {
+    fontSize: Fonts.sizes.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: Fonts.lineHeights.relaxed * Fonts.sizes.sm,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    fontWeight: Fonts.weights.medium,
+  },
+  orderSummaryCard: {
+    alignSelf: 'stretch',
+    marginBottom: 8,
+  },
+  summaryGradient: {
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: Colors.primary + '25',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  summaryIconContainer: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: Colors.primary + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  summaryText: {
+    fontSize: Fonts.sizes.sm,
+    color: Colors.textPrimary,
+    fontWeight: Fonts.weights.semiBold,
+    flex: 1,
+    letterSpacing: 0.1,
+  },
+  premiumActionButton: {
+    borderRadius: 22,
+    overflow: 'hidden',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 10,
+    alignSelf: 'stretch',
+  },
+  actionButtonGradient: {
+    paddingVertical: 16,
+    paddingHorizontal: 28,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  actionButtonText: {
+    fontSize: Fonts.sizes.md,
+    fontWeight: Fonts.weights.bold,
+    color: '#FFFFFF',
+    marginLeft: 10,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
   },
 });
 

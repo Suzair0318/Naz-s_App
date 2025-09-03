@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -17,17 +17,32 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import { featuredProducts, newArrivals } from '../data/mockData';
 import ProductCard from '../components/ProductCard';
+import { useTabBarVisibility } from '../navigation/TabBarVisibilityContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 50) / 2; // Better spacing for 2 cards
 
-const ProductsScreen = ({ navigation, onScroll }) => {
+const ProductsScreen = ({ navigation, route, onScroll }) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   // Decouple input text from the applied search term
   const [searchInput, setSearchInput] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   // Keep input focus stable; no need to track focus state
   const inputRef = useRef(null);
+  const { hideTabBar, showTabBar } = useTabBarVisibility();
+  const lastYRef = useRef(0);
+  const lastDirRef = useRef('up');
+  const ACCEL_THRESHOLD = 8; // px change before toggling
+  const MIN_Y_TO_HIDE = 50; // don't hide near top
+
+  // Pre-select category when navigated with params
+  useEffect(() => {
+    const categoryFromParams = route?.params?.categoryName;
+    if (categoryFromParams) {
+      setSelectedFilter(categoryFromParams);
+      setAppliedSearch('');
+    }
+  }, [route?.params?.categoryName]);
   
   const serializeProduct = (p) => ({
     id: p.id,
@@ -183,7 +198,28 @@ const ProductsScreen = ({ navigation, onScroll }) => {
         contentContainerStyle={styles.listContainer}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
-        onScroll={onScroll}
+        onScroll={(e) => {
+          const y = e.nativeEvent.contentOffset.y;
+          const dy = y - lastYRef.current;
+          // Only react if movement is significant
+          if (Math.abs(dy) > ACCEL_THRESHOLD) {
+            if (dy > 0 && y > MIN_Y_TO_HIDE && lastDirRef.current !== 'down') {
+              hideTabBar();
+              lastDirRef.current = 'down';
+            } else if (dy < 0 && lastDirRef.current !== 'up') {
+              showTabBar();
+              lastDirRef.current = 'up';
+            }
+            lastYRef.current = y;
+          } else {
+            // small movement: just update lastY without toggling
+            lastYRef.current = y;
+          }
+          // Preserve external onScroll if provided
+          if (typeof onScroll === 'function') {
+            onScroll(e);
+          }
+        }}
         scrollEventThrottle={16}
         ListHeaderComponent={(
           <>
@@ -207,6 +243,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     paddingLeft : 5,
     backgroundColor: Colors.background,
+    marginHorizontal : 5,
   },
   searchInputContainer: {
     flexDirection: 'row',

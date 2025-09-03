@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -13,6 +14,41 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import CustomButton from '../components/CustomButton';
 import useCartStore from '../store/cartStore';
+
+// Reusable bounce touchable (local) for this screen
+const BounceTouchable = ({
+  onPress,
+  disabled,
+  children,
+  style,
+  activeOpacity = 0.9,
+  scaleTo = 1.08,
+  ...rest
+}) => {
+  const scale = React.useRef(new Animated.Value(1)).current;
+
+  const handlePress = () => {
+    if (disabled) return;
+    Animated.sequence([
+      Animated.timing(scale, { toValue: scaleTo, duration: 120, useNativeDriver: true }),
+      Animated.timing(scale, { toValue: 0.98, duration: 100, useNativeDriver: true }),
+      Animated.timing(scale, { toValue: 1, duration: 80, useNativeDriver: true }),
+    ]).start(() => onPress && onPress());
+  };
+
+  return (
+    <Animated.View style={[style, { transform: [{ scale }] }]}>
+      <TouchableOpacity
+        onPress={handlePress}
+        disabled={disabled}
+        activeOpacity={activeOpacity}
+        {...rest}
+      >
+        {children}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 
 const CartScreen = ({ navigation, onScroll }) => {
   const { items: cartItems, updateQuantity, removeFromCart } = useCartStore();
@@ -113,7 +149,7 @@ const CartScreen = ({ navigation, onScroll }) => {
 
   const renderCheckoutButton = () => (
     <View style={styles.checkoutContainer}>
-      <TouchableOpacity
+      <BounceTouchable
         style={styles.premiumCheckoutButton}
         onPress={() => navigation.navigate('Checkout', { items: cartItems, totals: { subtotal, total } })}
         activeOpacity={0.9}
@@ -126,7 +162,7 @@ const CartScreen = ({ navigation, onScroll }) => {
             <Text style={styles.checkoutMainText}>Checkout</Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </BounceTouchable>
     </View>
   );
 
@@ -174,7 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceElevated,
   },
   headerTitle: {
-    fontSize: Fonts.sizes.xxxl,
+    fontSize: 20,
     fontWeight: Fonts.weights.bold,
     color: Colors.textPrimary,
     marginBottom: 6,
