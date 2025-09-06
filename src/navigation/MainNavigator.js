@@ -8,6 +8,9 @@ import { Fonts } from '../constants/Fonts';
 import TabNavigator from './TabNavigator';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
+import OrdersScreen from '../screens/OrdersScreen';
+import OrderDetailScreen from '../screens/OrderDetailScreen';
+import WishlistScreen from '../screens/WishlistScreen';
 
 const Stack = createStackNavigator();
 
@@ -45,6 +48,27 @@ const MainNavigator = () => {
         <Stack.Screen 
           name="Checkout" 
           component={CheckoutScreen}
+          options={{
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen 
+          name="Orders" 
+          component={OrdersScreen}
+          options={{
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen 
+          name="OrderDetail" 
+          component={OrderDetailScreen}
+          options={{
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen 
+          name="Wishlist" 
+          component={WishlistScreen}
           options={{
             gestureEnabled: true,
           }}

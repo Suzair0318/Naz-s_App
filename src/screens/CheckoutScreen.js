@@ -132,6 +132,10 @@ const CheckoutScreen = ({ route, navigation }) => {
                 }
                 if (line1) {
                   setAddress((prev) => prev || line1);
+                  // Auto-fill ZIP/Postal Code if provided by reverse geocoding
+                  if (addr.postcode) {
+                    setZip((prev) => prev || String(addr.postcode));
+                  }
                 }
               } catch (e) {
                 // ignore reverse geocode errors
@@ -192,6 +196,38 @@ const CheckoutScreen = ({ route, navigation }) => {
     }
     
     setIsLoading(true);
+    // Build the payload that would be sent to the backend and log it for reference
+    try {
+      const orderPayload = {
+        userId: 'guest', // replace with authenticated user id when available
+        customer: {
+          fullName,
+          phone,
+          address,
+          city,
+          zip,
+          notes,
+        },
+        items: items.map((it) => ({
+          cartId: it.cartId || `${it.id}_${it.size || ''}_${it.color || ''}`,
+          productId: it.id,
+          name: it.name,
+          price: it.price,
+          image: it.image,
+          size: it.size || null,
+          color: it.color || null,
+          quantity: it.quantity || 1,
+          lineTotal: Number((it.price * (it.quantity || 1)).toFixed(2)),
+        })),
+        subtotal: Number(subtotal.toFixed(2)),
+        shipping: Number(shipping.toFixed(2)),
+        total: Number(total.toFixed(2)),
+        detectedCity: detectedCity || null,
+        platform: 'mobile',
+        createdAt: new Date().toISOString(),
+      };
+      console.log('SECTION: ORDER_PAYLOAD', orderPayload);
+    } catch (e) {}
     
     // Simulate API call
     setTimeout(() => {
@@ -442,6 +478,10 @@ const CheckoutScreen = ({ route, navigation }) => {
                           }
                           if (line1) {
                             setAddress((prev) => prev || line1);
+                            // Auto-fill ZIP/Postal Code if provided by reverse geocoding
+                            if (addr.postcode) {
+                              setZip((prev) => prev || String(addr.postcode));
+                            }
                           }
                         } catch (e) {
                           // ignore reverse geocode errors

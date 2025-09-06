@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,9 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import CustomButton from '../components/CustomButton';
 import useCartStore from '../store/cartStore';
+
+
+
 
 // Reusable bounce touchable (local) for this screen
 const BounceTouchable = ({
@@ -49,6 +52,19 @@ const BounceTouchable = ({
     </Animated.View>
   );
 };
+
+const test_data = [
+  {
+    cartId: '1_XS_Black',
+    productId: '1',
+    name: 'Elegant Evening Dress',
+    price: 299.99,
+    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=600&fit=crop&auto=format',
+    size: 'XS',
+    color: 'Black',
+    quantity: 2,
+  },
+]
 
 const CartScreen = ({ navigation, onScroll }) => {
   const { items: cartItems, updateQuantity, removeFromCart } = useCartStore();

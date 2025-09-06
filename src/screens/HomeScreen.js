@@ -15,13 +15,216 @@ import Feather from 'react-native-vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
-import { featuredProducts, categories, newArrivals, bannerData } from '../data/mockData';
+// Data inlined for clarity on what the Home screen maps
 import ProductCard from '../components/ProductCard';
 import CategoryCard from '../components/CategoryCard';
 import CustomButton from '../components/CustomButton';
 import Naz_Logo from '../assets/images/naz_logo.jpeg'
 
 const { width } = Dimensions.get('window');
+
+// Inlined data (migrated from src/data/mockData.js)
+export const categories = [
+  {
+    id: '1',
+    name: 'Dresses',
+    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&h=300&fit=crop',
+    itemCount: 45,
+  },
+  {
+    id: '2',
+    name: 'Tops & Blouses',
+    image: 'https://images.unsplash.com/photo-1564257577-2d3b8c3b7e5b?w=300&h=300&fit=crop',
+    itemCount: 32,
+  },
+  {
+    id: '3',
+    name: 'Bottoms',
+    image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=300&h=300&fit=crop',
+    itemCount: 28,
+  },
+  {
+    id: '4',
+    name: 'Outerwear',
+    image: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=300&h=300&fit=crop',
+    itemCount: 18,
+  },
+  {
+    id: '5',
+    name: 'Accessories',
+    image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=300&h=300&fit=crop',
+    itemCount: 24,
+  },
+];
+
+export const featuredProducts = [
+  {
+    id: '1',
+    name: 'Elegant Evening Dress',
+    price: 299.99,
+    originalPrice: 399.99,
+    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=600&fit=crop&auto=format',
+    rating: 4.8,
+    reviews: 124,
+    isNew: false,
+    isSale: true,
+    category: 'Dresses',
+    colors: ['Black', 'Navy', 'Burgundy'],
+    sizes: ['XS', 'S', 'M', 'L', 'XL'],
+    description:
+      'A timeless evening dress crafted from premium fabric with a flattering silhouette, designed for special occasions and elegant nights out.',
+    points: [
+      'Premium satin blend',
+      'Flattering A-line fit',
+      'Invisible back zipper',
+      'Fully lined for comfort',
+    ],
+  },
+  {
+    id: '2',
+    name: 'Silk Blouse Premium',
+    price: 159.99,
+    originalPrice: null,
+    image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=600&fit=crop&auto=format',
+    rating: 4.9,
+    reviews: 89,
+    isNew: true,
+    isSale: false,
+    category: 'Tops & Blouses',
+    colors: ['White', 'Cream', 'Blush'],
+    sizes: ['XS', 'S', 'M', 'L'],
+    description:
+      'An ultra-soft silk blouse with a luxurious drape that elevates any outfit from day to night.',
+    points: [
+      '100% silk fabric',
+      'Breathable and lightweight',
+      'Classic button-down design',
+      'Delicate sheen finish',
+    ],
+  },
+  {
+    id: '3',
+    name: 'Designer Blazer',
+    price: 249.99,
+    originalPrice: 329.99,
+    image: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=600&fit=crop&auto=format',
+    rating: 4.7,
+    reviews: 156,
+    isNew: false,
+    isSale: true,
+    category: 'Outerwear',
+    colors: ['Black', 'Camel', 'Gray'],
+    sizes: ['XS', 'S', 'M', 'L', 'XL'],
+    description:
+      'A tailored blazer with structured shoulders and a refined fit to complete your premium wardrobe.',
+    points: [
+      'Structured yet comfortable',
+      'Premium wool blend',
+      'Functional inner pockets',
+      'Single-breasted closure',
+    ],
+  },
+  {
+    id: '4',
+    name: 'High-Waist Trousers',
+    price: 129.99,
+    originalPrice: null,
+    image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=600&fit=crop&auto=format',
+    rating: 4.6,
+    reviews: 203,
+    isNew: true,
+    isSale: false,
+    category: 'Bottoms',
+    colors: ['Black', 'Navy', 'Charcoal'],
+    sizes: ['XS', 'S', 'M', 'L', 'XL'],
+    description:
+      'Elegant high-waist trousers designed for a sleek silhouette and all-day comfort.',
+    points: [
+      'Stretch comfort fabric',
+      'Tailored straight-leg fit',
+      'Concealed hook-and-bar closure',
+      'Wrinkle-resistant',
+    ],
+  },
+];
+
+export const newArrivals = [
+  {
+    id: '5',
+    name: 'Floral Midi Dress',
+    price: 189.99,
+    originalPrice: null,
+    image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=600&fit=crop',
+    rating: 4.5,
+    reviews: 67,
+    isNew: true,
+    isSale: false,
+    category: 'Dresses',
+    colors: ['Floral Print', 'Navy Floral'],
+    sizes: ['XS', 'S', 'M', 'L'],
+    description:
+      'A romantic floral midi dress with a flowy silhouette perfect for brunches and garden parties.',
+    points: [
+      'Soft breathable fabric',
+      'Adjustable waist tie',
+      'Midi-length hem',
+      'Machine washable',
+    ],
+  },
+  {
+    id: '6',
+    name: 'Cashmere Sweater',
+    price: 199.99,
+    originalPrice: null,
+    image: 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&h=600&fit=crop',
+    rating: 4.9,
+    reviews: 45,
+    isNew: true,
+    isSale: false,
+    category: 'Tops & Blouses',
+    colors: ['Cream', 'Gray', 'Camel'],
+    sizes: ['XS', 'S', 'M', 'L', 'XL'],
+    description:
+      'Luxuriously soft cashmere sweater designed to keep you warm without compromising on style.',
+    points: [
+      '100% cashmere',
+      'Ultra-soft hand feel',
+      'Ribbed cuffs and hem',
+      'Classic crew neckline',
+    ],
+  },
+];
+
+export const bannerData = [
+  {
+    id: '1',
+    title: 'New Collection',
+    subtitle: 'Discover elegance in every piece',
+    image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=400&fit=crop',
+    buttonText: 'Shop Now',
+  },
+  {
+    id: '2',
+    title: 'Sale Up to 50%',
+    subtitle: 'Limited time offer',
+    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=400&fit=crop',
+    buttonText: 'View Sale',
+  },
+  {
+    id: '3',
+    title: 'Premium Dresses',
+    subtitle: 'Luxury meets comfort',
+    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=400&fit=crop',
+    buttonText: 'Explore',
+  },
+  {
+    id: '4',
+    title: 'Winter Collection',
+    subtitle: 'Stay warm in style',
+    image: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=400&fit=crop',
+    buttonText: 'Shop Winter',
+  },
+];
 
 const HomeScreen = ({ navigation, onScroll }) => {
   // Ensure we only pass serializable params through navigation
@@ -216,39 +419,41 @@ const HomeScreen = ({ navigation, onScroll }) => {
     </View>
   );
 
-  const renderBanner = () => (
-    <View style={styles.bannerWrapper}>
-      <FlatList
-        ref={bannerScrollRef}
-        data={bannerData}
-        renderItem={renderBannerItem}
-        keyExtractor={(item) => item.id}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(event) => {
-          const index = Math.round(event.nativeEvent.contentOffset.x / width);
-          setCurrentBannerIndex(index);
-        }}
-        getItemLayout={(data, index) => ({
-          length: width,
-          offset: width * index,
-          index,
-        })}
-      />
-      <View style={styles.bannerPagination}>
-        {bannerData.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.paginationDot,
-              index === currentBannerIndex && styles.paginationDotActive,
-            ]}
-          />
-        ))}
+  const renderBanner = () => {
+    return (
+      <View style={styles.bannerWrapper}>
+        <FlatList
+          ref={bannerScrollRef}
+          data={bannerData}
+          renderItem={renderBannerItem}
+          keyExtractor={(item) => item.id}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(event) => {
+            const index = Math.round(event.nativeEvent.contentOffset.x / width);
+            setCurrentBannerIndex(index);
+          }}
+          getItemLayout={(data, index) => ({
+            length: width,
+            offset: width * index,
+            index,
+          })}
+        />
+        <View style={styles.bannerPagination}>
+          {bannerData.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.paginationDot,
+                index === currentBannerIndex && styles.paginationDotActive,
+              ]}
+            />
+          ))}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderSectionHeader = (title, actionText) => (
     <View style={styles.sectionHeader}>
@@ -268,85 +473,91 @@ const HomeScreen = ({ navigation, onScroll }) => {
     </View>
   );
 
-  const renderCategories = () => (
-    <View style={styles.categoriesSection}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Shop by Category</Text>
-        <Animated.View style={[{ transform: [{ scale: viewAllButtonScale }] }]}>
-          <TouchableOpacity 
-            style={styles.viewAllButton}
-            onPress={handleViewAllPress}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.viewAllText}>View All</Text>
-            <View style={styles.viewAllArrow} />
-          </TouchableOpacity>
-        </Animated.View>
+  const renderCategories = () => {
+    return (
+      <View style={styles.categoriesSection}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Shop by Category</Text>
+          <Animated.View style={[{ transform: [{ scale: viewAllButtonScale }] }]}>
+            <TouchableOpacity 
+              style={styles.viewAllButton}
+              onPress={handleViewAllPress}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.viewAllText}>View All</Text>
+              <View style={styles.viewAllArrow} />
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+        <View style={styles.categoriesContainer}>
+          <FlatList
+            data={categories}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <CategoryCard
+                category={item}
+                onPress={() => navigation.navigate('Products', { categoryName: item.name })}
+              />
+            )}
+            contentContainerStyle={styles.categoriesList}
+          />
+        </View>
       </View>
-      <View style={styles.categoriesContainer}>
+    );
+  };
+
+
+  const renderFeaturedProducts = () => {
+    return (
+      <View style={styles.featuredSection}>
+        {renderSectionHeader('Featured Products', 'View All')}
         <FlatList
-          data={categories}
+          data={featuredProducts}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <CategoryCard
-              category={item}
-              onPress={() => navigation.navigate('Products', { categoryName: item.name })}
-            />
+            <View style={styles.horizontalFeaturedCard}>
+              <ProductCard
+                product={item}
+                onPress={() => navigation.navigate('ProductDetail', { product: serializeProduct(item) })}
+                onToggleWishlist={() => { }}
+              />
+            </View>
           )}
-          contentContainerStyle={styles.categoriesList}
+          contentContainerStyle={styles.featuredProductsList}
         />
       </View>
-    </View>
-  );
+    );
+  };
 
-
-  const renderFeaturedProducts = () => (
-    <View style={styles.featuredSection}>
-      {renderSectionHeader('Featured Products', 'View All')}
-      <FlatList
-        data={featuredProducts}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.horizontalFeaturedCard}>
-            <ProductCard
-              product={item}
-              onPress={() => navigation.navigate('ProductDetail', { product: serializeProduct(item) })}
-              onToggleWishlist={() => { }}
-            />
-          </View>
-        )}
-        contentContainerStyle={styles.featuredProductsList}
-      />
-    </View>
-  );
-
-  const renderNewArrivals = () => (
-    <View style={styles.featuredSection}>
-      {renderSectionHeader('New Arrivals', 'View All')}
-      <FlatList
-        data={newArrivals}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.horizontalFeaturedCard}>
-            <ProductCard
-              product={item}
-              onPress={() => navigation.navigate('ProductDetail', { product: item })}
-              onToggleWishlist={() => { }}
-            />
-          </View>
-        )}
-        contentContainerStyle={styles.featuredProductsList}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-      />
-    </View>
-  );
+  const renderNewArrivals = () => {
+    return (
+      <View style={styles.featuredSection}>
+        {renderSectionHeader('New Arrivals', 'View All')}
+        <FlatList
+          data={newArrivals}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.horizontalFeaturedCard}>
+              <ProductCard
+                product={item}
+                onPress={() => navigation.navigate('ProductDetail', { product: item })}
+                onToggleWishlist={() => { }}
+              />
+            </View>
+          )}
+          contentContainerStyle={styles.featuredProductsList}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+        />
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>

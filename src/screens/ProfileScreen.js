@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  Modal,
+  Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -16,15 +19,16 @@ import { Fonts } from '../constants/Fonts';
 const { width: screenWidth } = Dimensions.get('window');
 
 const ProfileScreen = ({ navigation, onScroll }) => {
+  const [showSupportModal, setShowSupportModal] = useState(false);
   const menuItems = [
     { id: '1', title: 'My Orders', icon: 'bag-outline', iconColor: '#4CAF50', screen: 'Orders' },
     { id: '2', title: 'Wishlist', icon: 'heart-outline', iconColor: '#FF6B6B', screen: 'Wishlist' },
-    { id: '3', title: 'Address Book', icon: 'location-outline', iconColor: '#4ECDC4', screen: 'Addresses' },
-    { id: '4', title: 'Payment Methods', icon: 'card-outline', iconColor: '#45B7D1', screen: 'PaymentMethods' },
-    { id: '5', title: 'Size Guide', icon: 'resize-outline', iconColor: '#96CEB4', screen: 'SizeGuide' },
+    // { id: '3', title: 'Address Book', icon: 'location-outline', iconColor: '#4ECDC4', screen: 'Addresses' },
+    // { id: '4', title: 'Payment Methods', icon: 'card-outline', iconColor: '#45B7D1', screen: 'PaymentMethods' },
+    // { id: '5', title: 'Size Guide', icon: 'resize-outline', iconColor: '#96CEB4', screen: 'SizeGuide' },
     { id: '6', title: 'Customer Support', icon: 'chatbubble-ellipses-outline', iconColor: '#FECA57', screen: 'Support' },
-    { id: '7', title: 'Settings', icon: 'settings-outline', iconColor: '#A8A8A8', screen: 'Settings' },
-    { id: '8', title: 'About', icon: 'information-circle-outline', iconColor: '#6C5CE7', screen: 'About' },
+    // { id: '7', title: 'Settings', icon: 'settings-outline', iconColor: '#A8A8A8', screen: 'Settings' },
+    // { id: '8', title: 'About', icon: 'information-circle-outline', iconColor: '#6C5CE7', screen: 'About' },
   ];
 
   const renderHeader = () => (
@@ -79,10 +83,25 @@ const ProfileScreen = ({ navigation, onScroll }) => {
     </View>
   );
 
+  const handleMenuPress = (item) => {
+    if (item.title === 'Customer Support' || item.screen === 'Support') {
+      setShowSupportModal(true);
+      return;
+    }
+    navigation.navigate(item.screen);
+  };
+
+  const handleCallSupport = () => {
+    const phoneNumber = '+92 300 1234567';
+    Linking.openURL(`tel:${phoneNumber}`).catch(() => {
+      Alert.alert('Error', 'Unable to make phone call');
+    });
+  };
+
   const renderMenuItem = ({ item }) => (
     <TouchableOpacity
       style={styles.menuItem}
-      onPress={() => navigation.navigate(item.screen)}
+      onPress={() => handleMenuPress(item)}
       activeOpacity={0.8}
     >
       <View style={styles.menuItemLeft}>
@@ -127,6 +146,61 @@ const ProfileScreen = ({ navigation, onScroll }) => {
         
         <View style={styles.bottomSpacing} />
       </ScrollView>
+      {/* Customer Support Modal */}
+      <Modal
+        visible={showSupportModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSupportModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View style={styles.supportIconContainer}>
+                <Ionicons name="headset" size={32} color={Colors.primary} />
+              </View>
+              <Text style={styles.modalTitle}>Customer Support</Text>
+              <Text style={styles.modalSubtitle}>We're here to help you!</Text>
+            </View>
+
+            <View style={styles.contactInfo}>
+              <View style={styles.contactItem}>
+                <Ionicons name="call" size={20} color="#4CAF50" />
+                <View style={styles.contactDetails}>
+                  <Text style={styles.contactLabel}>Call us directly</Text>
+                  <Text style={styles.contactValue}>+92 300 1234567</Text>
+                </View>
+              </View>
+
+              <View style={styles.contactItem}>
+                <Ionicons name="time" size={20} color="#FF9800" />
+                <View style={styles.contactDetails}>
+                  <Text style={styles.contactLabel}>Support Hours</Text>
+                  <Text style={styles.contactValue}>9:00 AM - 8:00 PM (Mon-Sat)</Text>
+                </View>
+              </View>
+
+              <View style={styles.contactItem}>
+                <Ionicons name="mail" size={20} color="#2196F3" />
+                <View style={styles.contactDetails}>
+                  <Text style={styles.contactLabel}>Email Support</Text>
+                  <Text style={styles.contactValue}>support@nazcollection.com</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.callButton} onPress={handleCallSupport}>
+                <Ionicons name="call" size={18} color="#FFFFFF" />
+                <Text style={styles.callButtonText}>Call Now</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setShowSupportModal(false)}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -343,6 +417,117 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 100,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    backgroundColor: Colors.surfaceElevated,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  supportIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: Fonts.sizes.xl,
+    fontWeight: Fonts.weights.bold,
+    color: Colors.textPrimary,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: Fonts.sizes.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  contactInfo: {
+    marginBottom: 24,
+  },
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  contactDetails: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  contactLabel: {
+    fontSize: Fonts.sizes.sm,
+    color: Colors.textSecondary,
+    fontWeight: Fonts.weights.medium,
+    marginBottom: 2,
+  },
+  contactValue: {
+    fontSize: Fonts.sizes.md,
+    color: Colors.textPrimary,
+    fontWeight: Fonts.weights.semiBold,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  callButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4CAF50',
+    paddingVertical: 14,
+    borderRadius: 12,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  callButtonText: {
+    color: '#FFFFFF',
+    fontSize: Fonts.sizes.md,
+    fontWeight: Fonts.weights.semiBold,
+    marginLeft: 6,
+  },
+  closeButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  closeButtonText: {
+    color: Colors.textPrimary,
+    fontSize: Fonts.sizes.md,
+    fontWeight: Fonts.weights.semiBold,
   },
 });
 
