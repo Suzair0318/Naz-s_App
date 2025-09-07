@@ -10,9 +10,11 @@ import { Fonts } from '../constants/Fonts';
 import useCartStore from '../store/cartStore';
 import CustomButton from '../components/CustomButton';
 import PremiumAlert from '../components/PremiumAlert';
+import useAuthStore from '../store/authStore';
 
 const CheckoutScreen = ({ route, navigation }) => {
-  const { buyNowItem, items: navItems, totals: navTotals } = route?.params || {};
+  const { buyNowItem, items: navItems, totals: navTotals, openLocationOnMount } = route?.params || {};
+  const isAuthenticated = useAuthStore((s) => !!s.user);
   const { items: cartItems, clearCart } = useCartStore();
 
   const items = useMemo(() => {
@@ -81,83 +83,14 @@ const CheckoutScreen = ({ route, navigation }) => {
   const successOpacityAnim = useRef(new Animated.Value(0)).current;
   const confettiAnim = useRef(new Animated.Value(0)).current;
 
-  // Ask permission and get precise location to improve city detection
+  // Show location modal only when coming from Cart with intent and user is authenticated
   useEffect(() => {
+    if (!openLocationOnMount) return;
+    if (!isAuthenticated) return;
     if (askedLocationOnce) return;
     setAskedLocationOnce(true);
-
-    const askPermissionAndLocate = async () => {
-      try {
-        const perm = Platform.select({
-          android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-          ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-        });
-        if (!perm) return;
-        const status = await check(perm);
-        let finalStatus = status;
-        if (status !== RESULTS.GRANTED) {
-          finalStatus = await request(perm);
-        }
-        if (finalStatus === RESULTS.GRANTED) {
-          Geolocation.getCurrentPosition(
-            async ({ coords }) => {
-              try {
-                const { latitude, longitude } = coords;
-                // Reverse geocode to get city and address
-                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=en`;
-                const resp = await fetch(url, {
-                  headers: { 'User-Agent': 'NazsApp/1.0 (ReactNative)', 'Accept-Language': 'en' },
-                });
-                const data = await resp.json();
-                console.log(data);
-                const addr = data?.address || {};
-                const foundCity = (
-                  addr.city || addr.town || addr.village || addr.municipality || addr.county || ''
-                ).toString();
-                // Build a precise, readable address line
-                const parts = [
-                  [addr.house_number, addr.road].filter(Boolean).join(' '),
-                  addr.neighbourhood || addr.suburb || addr.quarter || addr.hamlet,
-                  addr.city_district || addr.district,
-                  foundCity,
-                  addr.state,
-                  addr.postcode,
-                ].filter(Boolean);
-                const line1 = parts.slice(0, 4).join(', ');
-                if (foundCity) {
-                  setDetectedCity(foundCity);
-                  setCity((prev) => prev || foundCity);
-                  const isKarachi = foundCity.toLowerCase().includes('karachi');
-                  setShipping(items.length > 0 ? (isKarachi ? 250 : 350) : 0);
-                }
-                if (line1) {
-                  setAddress((prev) => prev || line1);
-                  // Auto-fill ZIP/Postal Code if provided by reverse geocoding
-                  if (addr.postcode) {
-                    setZip((prev) => prev || String(addr.postcode));
-                  }
-                }
-              } catch (e) {
-                // ignore reverse geocode errors
-              }
-            },
-            (error) => {
-              // ignore geolocation error; IP-based fallback already applied
-            },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
-          );
-        } else {
-          // Not granted or blocked: show premium alert
-          setShowPermissionAlert(true);
-        }
-      } catch (e) {
-        // silently fail; IP fallback remains
-      }
-    };
-
-    // Show premium location alert
     setShowLocationAlert(true);
-  }, [askedLocationOnce, items.length]);
+  }, [openLocationOnMount, isAuthenticated, askedLocationOnce, items.length]);
 
   const validateField = (field, value) => {
     switch (field) {

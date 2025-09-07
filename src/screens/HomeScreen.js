@@ -9,6 +9,7 @@ import {
   FlatList,
   Dimensions,
   Animated,
+  Platform,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
@@ -23,7 +24,7 @@ import Naz_Logo from '../assets/images/naz_logo.jpeg'
 
 const { width } = Dimensions.get('window');
 
-// Inlined data (migrated from src/data/mockData.js)
+// // Inlined data (migrated from src/data/mockData.js)
 export const categories = [
   {
     id: '1',
@@ -248,6 +249,15 @@ const HomeScreen = ({ navigation, onScroll }) => {
   const cartBounceAnim = useRef(new Animated.Value(1)).current;
   const viewAllButtonScale = useRef(new Animated.Value(1)).current;
   const premiumButtonScale = useRef(new Animated.Value(1)).current;
+  // Categories fetched from backend
+  const [apiCategories, setApiCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  // New Arrivals fetched from backend
+  const [apiNewArrivals, setApiNewArrivals] = useState([]);
+  const [newArrivalsLoading, setNewArrivalsLoading] = useState(false);
+  // Featured (On Sale) products fetched from backend
+  const [apiFeaturedOnSale, setApiFeaturedOnSale] = useState([]);
+  const [featuredLoading, setFeaturedLoading] = useState(false);
 
   useEffect(() => {
     // Header entrance animation
@@ -268,6 +278,181 @@ const HomeScreen = ({ navigation, onScroll }) => {
         useNativeDriver: true,
       }),
     ]).start();
+  }, []);
+
+  // Fetch Featured (On Sale) products and map to ProductCard shape
+  useEffect(() => {
+    const fetchFeaturedOnSale = async () => {
+      try {
+        setFeaturedLoading(true);
+        const url = `${API_BASE}/admin/products/on-sale`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (Array.isArray(data)) {
+          const mapped = data.map((p) => {
+            const firstImage = Array.isArray(p.image) && p.image.length > 0 ? p.image[0] : p.image;
+            const normalizedImage = normalizeImageUrl(firstImage || '');
+
+            // sizes may come as ["XS,S,M,L,XL"] or a comma string
+            let sizesArr = [];
+            if (Array.isArray(p.sizes)) {
+              sizesArr = p.sizes.length === 1 && typeof p.sizes[0] === 'string'
+                ? p.sizes[0].split(',').map((s) => s.trim()).filter(Boolean)
+                : p.sizes.map((s) => String(s).trim());
+            } else if (typeof p.sizes === 'string') {
+              sizesArr = p.sizes.split(',').map((s) => s.trim()).filter(Boolean);
+            }
+
+            // points may come as ["a,b,c"] or a comma string
+            let pointsArr = [];
+            if (Array.isArray(p.points)) {
+              pointsArr = p.points.length === 1 && typeof p.points[0] === 'string'
+                ? p.points[0].split(',').map((s) => s.trim()).filter(Boolean)
+                : p.points.map((s) => String(s).trim());
+            } else if (typeof p.points === 'string') {
+              pointsArr = p.points.split(',').map((s) => s.trim()).filter(Boolean);
+            }
+
+            return {
+              id: String(p._id ?? p.id ?? p.name),
+              name: p.name,
+              price: Number(p.price ?? 0),
+              originalPrice: p.cutPrice != null ? Number(p.cutPrice) : null,
+              image: normalizedImage,
+              rating: Number(p.rating ?? 4.8),
+              reviews: Number(p.reviews ?? 0),
+              isNew: !!p.isNew,
+              isSale: !!p.isSale,
+              category: p.category ?? '',
+              colors: Array.isArray(p.colors) ? p.colors : [],
+              sizes: sizesArr,
+              description: p.description ?? '',
+              points: pointsArr,
+            };
+          });
+          setApiFeaturedOnSale(mapped);
+        } else {
+          console.warn('Featured (on-sale) API returned non-array payload');
+        }
+      } catch (e) {
+        console.warn('Featured (on-sale) fetch failed:', e?.message || e);
+      } finally {
+        setFeaturedLoading(false);
+      }
+    };
+    fetchFeaturedOnSale();
+  }, []);
+
+  // API base for physical device testing (user provided LAN IP)
+  // If you switch back to emulator, consider 10.0.2.2 for Android emulator.
+  const API_BASE = 'http://192.168.18.11:3006';
+
+  // Normalize image URLs coming from backend (localhost, 127.0.0.1, relative)
+  const normalizeImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return url;
+    // If URL is absolute and points to localhost/127, rewrite to API_BASE
+    if (url.startsWith('http://localhost:3006')) return url.replace('http://localhost:3006', API_BASE);
+    if (url.startsWith('https://localhost:3006')) return url.replace('https://localhost:3006', API_BASE);
+    if (url.startsWith('http://127.0.0.1:3006')) return url.replace('http://127.0.0.1:3006', API_BASE);
+    if (url.startsWith('https://127.0.0.1:3006')) return url.replace('https://127.0.0.1:3006', API_BASE);
+    // If already absolute http(s) to some other host, return as-is
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    // If relative path, prefix with API_BASE
+    if (url.startsWith('/')) return `${API_BASE}${url}`;
+    // Fallback: treat as relative without leading slash
+    return `${API_BASE}/${url.replace(/^\/+/, '')}`;
+  };
+
+  // Fetch categories from backend and map to UI shape
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const url = `${API_BASE}/admin/products/categories`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (Array.isArray(data)) {
+          // Expecting: [{ id, name, image, itemCount }]
+          setApiCategories(data.map((c) => ({
+            id: String(c.id ?? c._id ?? c.name),
+            name: c.name,
+            image: normalizeImageUrl(c.image),
+            itemCount: Number(c.itemCount ?? 0),
+          })));
+          console.log(apiCategories);
+        } else {
+          console.warn('Categories API returned non-array payload');
+        }
+      } catch (e) {
+        console.warn('Categories fetch failed:', e?.message || e);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch New Arrivals from backend and map to ProductCard shape
+  useEffect(() => {
+    const fetchNewArrivals = async () => {
+      try {
+        setNewArrivalsLoading(true);
+        const url = `${API_BASE}/admin/products/new-arrivals`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        console.log( "New Arrivals",data);
+        if (Array.isArray(data)) {
+          const mapped = data.map((p) => {
+            const firstImage = Array.isArray(p.image) && p.image.length > 0 ? p.image[0] : p.image;
+            const normalizedImage = normalizeImageUrl(firstImage || '');
+            // sizes may come as ["XS,S,M,L,XL"] or "XS,S,M,L,XL"
+            let sizesArr = [];
+            if (Array.isArray(p.sizes)) {
+              sizesArr = p.sizes.length === 1 && typeof p.sizes[0] === 'string'
+                ? p.sizes[0].split(',').map((s) => s.trim()).filter(Boolean)
+                : p.sizes.map((s) => String(s).trim());
+            } else if (typeof p.sizes === 'string') {
+              sizesArr = p.sizes.split(',').map((s) => s.trim()).filter(Boolean);
+            }
+
+            // points may come as ["a,b,c"] or "a,b,c"
+            let pointsArr = [];
+            if (Array.isArray(p.points)) {
+              pointsArr = p.points.length === 1 && typeof p.points[0] === 'string'
+                ? p.points[0].split(',').map((s) => s.trim()).filter(Boolean)
+                : p.points.map((s) => String(s).trim());
+            } else if (typeof p.points === 'string') {
+              pointsArr = p.points.split(',').map((s) => s.trim()).filter(Boolean);
+            }
+
+            return {
+              id: String(p._id ?? p.id ?? p.name),
+              name: p.name,
+              price: Number(p.price ?? 0),
+              originalPrice: p.cutPrice != null ? Number(p.cutPrice) : null,
+              image: normalizedImage,
+              rating: Number(p.rating ?? 4.7),
+              reviews: Number(p.reviews ?? 0),
+              isNew: !!p.isNew,
+              isSale: !!p.isSale,
+              category: p.category ?? '',
+              colors: Array.isArray(p.colors) ? p.colors : [],
+              sizes: sizesArr,
+              description: p.description ?? '',
+              points: pointsArr,
+            };
+          });
+          setApiNewArrivals(mapped);
+        } else {
+          console.warn('New Arrivals API returned non-array payload');
+        }
+      } catch (e) {
+        console.warn('New Arrivals fetch failed:', e?.message || e);
+      } finally {
+        setNewArrivalsLoading(false);
+      }
+    };
+    fetchNewArrivals();
   }, []);
 
   const handleCartPress = () => {
@@ -491,10 +676,10 @@ const HomeScreen = ({ navigation, onScroll }) => {
         </View>
         <View style={styles.categoriesContainer}>
           <FlatList
-            data={categories}
+            data={apiCategories.length > 0 ? apiCategories : categories}
             horizontal
             showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => String(item.id)}
             renderItem={({ item }) => (
               <CategoryCard
                 category={item}
@@ -514,10 +699,10 @@ const HomeScreen = ({ navigation, onScroll }) => {
       <View style={styles.featuredSection}>
         {renderSectionHeader('Featured Products', 'View All')}
         <FlatList
-          data={featuredProducts}
+          data={apiFeaturedOnSale.length > 0 ? apiFeaturedOnSale : featuredProducts}
           horizontal
           showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
             <View style={styles.horizontalFeaturedCard}>
               <ProductCard
@@ -538,7 +723,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
       <View style={styles.featuredSection}>
         {renderSectionHeader('New Arrivals', 'View All')}
         <FlatList
-          data={newArrivals}
+          data={apiNewArrivals.length > 0 ? apiNewArrivals : newArrivals}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}
@@ -546,7 +731,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
             <View style={styles.horizontalFeaturedCard}>
               <ProductCard
                 product={item}
-                onPress={() => navigation.navigate('ProductDetail', { product: item })}
+                onPress={() => navigation.navigate('ProductDetail', { product: serializeProduct(item) })}
                 onToggleWishlist={() => { }}
               />
             </View>

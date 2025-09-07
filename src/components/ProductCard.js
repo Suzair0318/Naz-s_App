@@ -43,16 +43,12 @@ const ProductCard = ({ product, onPress, onToggleWishlist }) => {
   };
 
   const renderPriceSection = () => {
-    const discountPercent = calculateDiscount();
-    
     return (
       <View style={styles.priceContainer}>
         <View style={styles.priceRow}>
-          <Text style={styles.price}>${product.price}</Text>
+          <Text style={styles.price}>Rs{product.price}</Text>
           {product.originalPrice && (
-            <>
-              <Text style={styles.originalPrice}>${product.originalPrice}</Text>
-            </>
+            <Text style={styles.originalPrice}>{product.originalPrice}</Text>
           )}
         </View>
       </View>
@@ -165,12 +161,15 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    height: 160,
+    height: 200,
+    backgroundColor: '#F5F5F7',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
   },
   badgeContainer: {
     position: 'absolute',
@@ -247,22 +246,25 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   contentContainer: {
-    padding: 12,
+    padding: 16,
+    paddingTop : 7,
+    backgroundColor: '#FFFFFF',
   },
   category: {
-    fontSize: 9,
+    fontSize: 10,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: 4,
+    letterSpacing: 0.8,
+    marginBottom: 6,
+    opacity: 0.8,
   },
   name: {
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.textPrimary,
-    fontWeight: '600',
-    marginBottom: 6,
-    lineHeight: 16,
+    fontWeight: '700',
+    marginBottom: 5,
+    lineHeight: 18,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -280,29 +282,28 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
   },
   priceContainer: {
-    marginBottom: 8,
+    // marginTop: 6,
+    // paddingTop: 4,
+    // borderTopWidth: 1,
+    // borderTopColor: '#F0F0F0',
   },
   priceRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
   },
   price: {
     fontSize: 15,
-    color: Colors.textPrimary,
+    color: '#2C2C2C',
     fontWeight: '700',
-    marginRight: 6,
+    letterSpacing: 0.2,
   },
   originalPrice: {
     fontSize: 12,
-    color: Colors.textSecondary,
+    color: '#999999',
     textDecorationLine: 'line-through',
-  },
-  discountInline: {
-    fontSize: 11,
-    color: '#FF4444',
-    fontWeight: '600',
-    marginLeft: 4,
+    fontWeight: '500',
+    opacity: 0.8,
   },
 });
 

@@ -14,6 +14,7 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import CustomButton from '../components/CustomButton';
 import useCartStore from '../store/cartStore';
+import useAuthStore from '../store/authStore';
 
 
 
@@ -68,6 +69,7 @@ const test_data = [
 
 const CartScreen = ({ navigation, onScroll }) => {
   const { items: cartItems, updateQuantity, removeFromCart } = useCartStore();
+  const isAuthenticated = useAuthStore((s) => !!s.user);
 
   const changeQty = (cartId, change) => {
     const item = cartItems.find(i => i.cartId === cartId);
@@ -163,11 +165,20 @@ const CartScreen = ({ navigation, onScroll }) => {
     </View>
   );
 
+  const handleCheckout = () => {
+    const params = { items: cartItems, totals: { subtotal, total }, openLocationOnMount: true };
+    if (!isAuthenticated) {
+      navigation.navigate('Login', { redirectTo: 'Checkout', redirectParams: params });
+      return;
+    }
+    navigation.navigate('Checkout', params);
+  };
+
   const renderCheckoutButton = () => (
     <View style={styles.checkoutContainer}>
       <BounceTouchable
         style={styles.premiumCheckoutButton}
-        onPress={() => navigation.navigate('Checkout', { items: cartItems, totals: { subtotal, total } })}
+        onPress={handleCheckout}
         activeOpacity={0.9}
       >
         <View style={styles.checkoutButtonContent}>

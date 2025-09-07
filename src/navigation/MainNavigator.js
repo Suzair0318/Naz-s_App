@@ -11,6 +11,8 @@ import CheckoutScreen from '../screens/CheckoutScreen';
 import OrdersScreen from '../screens/OrdersScreen';
 import OrderDetailScreen from '../screens/OrderDetailScreen';
 import WishlistScreen from '../screens/WishlistScreen';
+import LoginScreen from '../screens/LoginScreen';
+import SignupScreen from '../screens/SignupScreen';
 
 const Stack = createStackNavigator();
 
@@ -49,6 +51,24 @@ const MainNavigator = () => {
           name="Checkout" 
           component={CheckoutScreen}
           options={{
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            headerShown: false,
+            presentation: 'modal',
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen
+          name="Signup"
+          component={SignupScreen}
+          options={{
+            headerShown: false,
+            presentation: 'modal',
             gestureEnabled: true,
           }}
         />

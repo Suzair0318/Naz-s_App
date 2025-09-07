@@ -6,17 +6,19 @@
 // Product shapes (from UI usage in ProductCard/ProductDetail/mockData)
 // --------------------------------------------
 export const productSample = {
-  id: '1',
   name: 'Elegant Evening Dress',
   price: 299.99,
-  originalPrice: 399.99, // nullable
-  image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=600&fit=crop&auto=format',
-  rating: 4.8,
-  reviews: 124,
+ cutPrice: 399.99, // nullable
+  image: [
+     'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=600&fit=crop&auto=format',
+     'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=600&fit=crop&auto=format',
+     'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=600&fit=crop&auto=format'
+  ],
   isNew: false,
   isSale: true,
+  brand : 'Naz Collection',
+  weight : 100,
   category: 'Dresses',
-  colors: ['Black', 'Navy', 'Burgundy'],
   sizes: ['XS', 'S', 'M', 'L', 'XL'],
   description:
     "A timeless evening dress crafted from premium fabric with a flattering silhouette.",
