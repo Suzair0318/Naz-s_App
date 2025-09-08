@@ -62,7 +62,6 @@ const test_data = [
     price: 299.99,
     image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=600&fit=crop&auto=format',
     size: 'XS',
-    color: 'Black',
     quantity: 2,
   },
 ]
@@ -70,6 +69,20 @@ const test_data = [
 const CartScreen = ({ navigation, onScroll }) => {
   const { items: cartItems, updateQuantity, removeFromCart } = useCartStore();
   const isAuthenticated = useAuthStore((s) => !!s.user);
+
+  // Hydrate cart when screen mounts depending on auth state
+  useEffect(() => {
+    const hydrate = async () => {
+      if (cartItems.length > 0) return;
+      if (isAuthenticated) {
+        await useCartStore.getState().loadCartFromServer();
+      } else {
+        await useCartStore.getState().loadCartFromStorage();
+      }
+    };
+    hydrate();
+    // Re-run when auth state changes (e.g., user logs in)
+  }, [isAuthenticated]);
 
   const changeQty = (cartId, change) => {
     const item = cartItems.find(i => i.cartId === cartId);

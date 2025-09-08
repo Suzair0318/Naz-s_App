@@ -5,9 +5,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import useAuthStore from '../store/authStore';
+import useCartStore from '../store/cartStore';
 
 const SignupScreen = ({ navigation, route }) => {
   const { signUp, status } = useAuthStore();
+  const syncCartAfterLogin = useCartStore((s) => s.syncCartAfterLogin);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,6 +21,8 @@ const SignupScreen = ({ navigation, route }) => {
     setError('');
     try {
       await signUp({ name, email, password });
+      // Persist any pre-signup cart to the backend now that we have a token
+      await syncCartAfterLogin();
       const { redirectTo, redirectParams } = route.params || {};
       if (redirectTo) {
         navigation.replace(redirectTo, redirectParams);

@@ -14,6 +14,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import useCartStore from '../store/cartStore';
 import { Colors } from '../constants/Colors';
+import LoadingSpinner from '../components/LoadingSpinner';
+
+// API base (match other screens)
+const API_BASE = 'http://192.168.18.11:3006';
+
+// Normalize image URLs coming from backend
+const normalizeImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  if (url.startsWith('http://localhost:3006')) return url.replace('http://localhost:3006', API_BASE);
+  if (url.startsWith('https://localhost:3006')) return url.replace('https://localhost:3006', API_BASE);
+  if (url.startsWith('http://127.0.0.1:3006')) return url.replace('http://127.0.0.1:3006', API_BASE);
+  if (url.startsWith('https://127.0.0.1:3006')) return url.replace('https://127.0.0.1:3006', API_BASE);
+  if (url.startsWith('/')) return `${API_BASE}${url}`;
+  return url;
+};
 
 const { width } = Dimensions.get('window');
 
@@ -67,13 +82,81 @@ const BounceTouchable = ({
 };
 
 const ProductDetailScreen = ({ route, navigation }) => {
-  const { product } = route?.params || {};
+  const { product: initialProduct, productId } = route?.params || {};
+  const [product, setProduct] = useState(initialProduct || null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const imageCarouselRef = useRef(null);
   const { addToCart } = useCartStore();
+
+  // Fetch product details by ID if provided (or if we have a product with id but want fresh data)
+  useEffect(() => {
+    const id = productId || initialProduct?.id || initialProduct?._id;
+    if (!id) return; // no id to fetch
+    let isMounted = true;
+    const fetchDetail = async () => {
+      try {
+        setLoadingDetail(true);
+        const resp = await fetch(`${API_BASE}/admin/products/${id}`);
+        const data = await resp.json();
+        // data can be the product object; map it to UI shape
+        const p = data?.item || data; // support either {item: {...}} or direct
+        if (p && isMounted) {
+          const imagesArrRaw = Array.isArray(p.image) ? p.image : (p.image ? [p.image] : []);
+          const images = imagesArrRaw.map((u) => normalizeImageUrl(u || ''));
+
+          // sizes may come as ["XS,S,M,L,XL"] or a comma string
+          let sizesArr = [];
+          if (Array.isArray(p.sizes)) {
+            sizesArr = p.sizes.length === 1 && typeof p.sizes[0] === 'string'
+              ? p.sizes[0].split(',').map((s) => s.trim()).filter(Boolean)
+              : p.sizes.map((s) => String(s).trim());
+          } else if (typeof p.sizes === 'string') {
+            sizesArr = p.sizes.split(',').map((s) => s.trim()).filter(Boolean);
+          }
+
+          // points may come as ["a,b,c"] or a comma string
+          let pointsArr = [];
+          if (Array.isArray(p.points)) {
+            pointsArr = p.points.length === 1 && typeof p.points[0] === 'string'
+              ? p.points[0].split(',').map((s) => s.trim()).filter(Boolean)
+              : p.points.map((s) => String(s).trim());
+          } else if (typeof p.points === 'string') {
+            pointsArr = p.points.split(',').map((s) => s.trim()).filter(Boolean);
+          }
+
+          const mapped = {
+            id: String(p._id ?? p.id ?? initialProduct?.id ?? ''),
+            name: p.name,
+            price: Number(p.price ?? 0),
+            originalPrice: p.cutPrice != null ? Number(p.cutPrice) : null,
+            image: images[0] || '',
+            images,
+            rating: Number(p.rating ?? initialProduct?.rating ?? 4.8),
+            reviews: Number(p.reviews ?? initialProduct?.reviews ?? 0),
+            isNew: !!p.isNew,
+            isSale: !!p.isSale,
+            category: p.category ?? '',
+            colors: Array.isArray(p.colors) ? p.colors : (initialProduct?.colors || []),
+            sizes: sizesArr,
+            description: p.description ?? '',
+            points: pointsArr,
+          };
+          setProduct(mapped);
+        }
+      } catch (e) {
+        console.warn('Product detail fetch failed:', e?.message || e);
+      } finally {
+        isMounted = false;
+        setLoadingDetail(false);
+      }
+    };
+    fetchDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
 
   // Auto-select first available size and color when product loads
   useEffect(() => {
@@ -108,12 +191,24 @@ const ProductDetailScreen = ({ route, navigation }) => {
     return map[color] || '#CCCCCC';
   };
 
-  // Create multiple images for carousel (using same image with different params for demo)
-  const productImages = product ? [
-    product.image,
-    product.image + '&variant=1',
-    product.image + '&variant=2'
-  ] : [];
+  // Use images array from fetched product; fallback to single
+  const productImages = product
+    ? (Array.isArray(product.images) && product.images.length > 0
+        ? product.images
+        : [
+            product.image,
+            product.image && `${product.image}?v=1`,
+            product.image && `${product.image}?v=2`,
+          ].filter(Boolean))
+    : [];
+
+  if (loadingDetail && !product) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <LoadingSpinner message="Loading product..." />
+      </SafeAreaView>
+    );
+  }
 
   if (!product) {
     return (
@@ -252,29 +347,29 @@ const ProductDetailScreen = ({ route, navigation }) => {
     </View>
   );
 
-  const renderColorSelector = () => (
-    <View style={styles.selectorContainer}>
-      <Text style={[styles.selectorTitle, { fontSize: 14 }]}>Color</Text>
-      <View style={styles.colorContainer}>
-        {product.colors?.map((color) => (
-          <BounceTouchable
-            key={color}
-            style={styles.swatchWrapper}
-            onPress={() => setSelectedColor(color)}
-            accessibilityLabel={`Select color ${color}`}
-          >
-            <View
-              style={[
-                styles.colorSwatch,
-                { backgroundColor: getColorHex(color) },
-                selectedColor === color && styles.selectedColorSwatch,
-              ]}
-            />
-          </BounceTouchable>
-        ))}
-      </View>
-    </View>
-  );
+  // const renderColorSelector = () => (
+  //   <View style={styles.selectorContainer}>
+  //     <Text style={[styles.selectorTitle, { fontSize: 14 }]}>Color</Text>
+  //     <View style={styles.colorContainer}>
+  //       {product.colors?.map((color) => (
+  //         <BounceTouchable
+  //           key={color}
+  //           style={styles.swatchWrapper}
+  //           onPress={() => setSelectedColor(color)}
+  //           accessibilityLabel={`Select color ${color}`}
+  //         >
+  //           <View
+  //             style={[
+  //               styles.colorSwatch,
+  //               { backgroundColor: getColorHex(color) },
+  //               selectedColor === color && styles.selectedColorSwatch,
+  //             ]}
+  //           />
+  //         </BounceTouchable>
+  //       ))}
+  //     </View>
+  //   </View>
+  // );
 
   const renderQuantitySelector = () => (
     <View style={styles.selectorContainer}>
@@ -387,7 +482,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
         {renderImageCarousel()}
         {renderProductInfo()}
         {renderSizeSelector()}
-        {renderColorSelector()}
+        {/* {renderColorSelector()} */}
         {renderQuantitySelector()}
         {renderDescription()}
         <View style={styles.bottomSpacing} />
@@ -465,7 +560,7 @@ const styles = StyleSheet.create({
   productImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
   },
   imageIndicators: {
     position: 'absolute',

@@ -11,6 +11,7 @@ import ProductsScreen from '../screens/ProductsScreen';
 import CartScreen from '../screens/CartScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import useCartStore from '../store/cartStore';
+import useAuthStore from '../store/authStore';
 import { TabBarVisibilityProvider, useTabBarVisibility } from './TabBarVisibilityContext';
 
 const Tab = createBottomTabNavigator();
@@ -148,6 +149,21 @@ const TabNavigator = () => {
   const cartCount = useCartStore((state) =>
     state.items.reduce((total, item) => total + (item.quantity || 0), 0)
   );
+  const itemsLength = useCartStore((state) => state.items.length);
+  const isAuthenticated = useAuthStore((s) => !!s.user);
+
+  // Hydrate cart on app/tab mount so badge is correct immediately
+  useEffect(() => {
+    const hydrate = async () => {
+      if (itemsLength > 0) return;
+      if (isAuthenticated) {
+        await useCartStore.getState().loadCartFromServer();
+      } else {
+        await useCartStore.getState().loadCartFromStorage();
+      }
+    };
+    hydrate();
+  }, [isAuthenticated, itemsLength]);
 
   return (
     <TabBarVisibilityProvider>

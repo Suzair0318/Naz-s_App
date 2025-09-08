@@ -5,6 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import useAuthStore from '../store/authStore';
+import useCartStore from '../store/cartStore';
 
 
 const sample = {
@@ -15,6 +16,7 @@ const sample = {
 
 const LoginScreen = ({ navigation, route }) => {
   const { signIn, status } = useAuthStore();
+  const syncCartAfterLogin = useCartStore((s) => s.syncCartAfterLogin);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,6 +27,8 @@ const LoginScreen = ({ navigation, route }) => {
     setError('');
     try {
       const user = await signIn({ email, password });
+      // Persist any pre-login cart to the backend now that we have a token
+      await syncCartAfterLogin();
       const { redirectTo, redirectParams } = route.params || {};
       if (redirectTo) {
         navigation.replace(redirectTo, redirectParams);

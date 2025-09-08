@@ -676,7 +676,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
         </View>
         <View style={styles.categoriesContainer}>
           <FlatList
-            data={apiCategories.length > 0 ? apiCategories : categories}
+            data={apiCategories}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => String(item.id)}
@@ -699,7 +699,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
       <View style={styles.featuredSection}>
         {renderSectionHeader('Featured Products', 'View All')}
         <FlatList
-          data={apiFeaturedOnSale.length > 0 ? apiFeaturedOnSale : featuredProducts}
+          data={apiFeaturedOnSale}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => String(item.id)}
@@ -707,7 +707,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
             <View style={styles.horizontalFeaturedCard}>
               <ProductCard
                 product={item}
-                onPress={() => navigation.navigate('ProductDetail', { product: serializeProduct(item) })}
+                onPress={() => navigation.navigate('ProductDetail', { productId: item.id || item._id })}
                 onToggleWishlist={() => { }}
               />
             </View>
@@ -723,7 +723,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
       <View style={styles.featuredSection}>
         {renderSectionHeader('New Arrivals', 'View All')}
         <FlatList
-          data={apiNewArrivals.length > 0 ? apiNewArrivals : newArrivals}
+          data={apiNewArrivals}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}

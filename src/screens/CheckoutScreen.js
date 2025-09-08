@@ -11,6 +11,10 @@ import useCartStore from '../store/cartStore';
 import CustomButton from '../components/CustomButton';
 import PremiumAlert from '../components/PremiumAlert';
 import useAuthStore from '../store/authStore';
+import storage from '../utils/storage';
+
+const CHECKOUT_ADDRESS_KEY = '@checkout_address';
+const API_BASE = 'http://192.168.18.11:3006';
 
 const CheckoutScreen = ({ route, navigation }) => {
   const { buyNowItem, items: navItems, totals: navTotals, openLocationOnMount } = route?.params || {};
@@ -32,6 +36,24 @@ const CheckoutScreen = ({ route, navigation }) => {
     navTotals?.shipping != null ? navTotals.shipping : (items.length > 0 ? 350 : 0)
   );
   const total = useMemo(() => subtotal + shipping, [subtotal, shipping]);
+
+  // Hydrate cart if user lands on Checkout without navItems/buyNowItem
+  useEffect(() => {
+    // If Checkout was invoked with explicit items, do not override
+    if (buyNowItem || Array.isArray(navItems)) return;
+    // If store already has items, no need to hydrate
+    if ((cartItems || []).length > 0) return;
+    const hydrate = async () => {
+      if (isAuthenticated) {
+        await useCartStore.getState().loadCartFromServer();
+      } else {
+        await useCartStore.getState().loadCartFromStorage();
+      }
+    };
+    hydrate();
+    // Re-run when auth changes; cartItems excluded to avoid flicker while mapping items below
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, buyNowItem, navItems]);
 
   // Detect user's city via IP and set shipping: Karachi = 250, Others = 350
   useEffect(() => {
@@ -71,6 +93,48 @@ const CheckoutScreen = ({ route, navigation }) => {
   const [errors, setErrors] = useState({});
   const [focusedField, setFocusedField] = useState(null);
   const [askedLocationOnce, setAskedLocationOnce] = useState(false);
+
+  // React to manual city changes and update shipping accordingly when navTotals doesn't override
+  useEffect(() => {
+    // If shipping was injected via navTotals, don't override
+    if (navTotals?.shipping != null) return;
+    const isKarachi = (city || '').toLowerCase().includes('karachi');
+    setShipping(items.length > 0 ? (isKarachi ? 250 : 350) : 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [city, items.length]);
+
+  // Load cached address info on mount (only if fields are empty)
+  useEffect(() => {
+    let cancelled = false;
+    const loadCachedAddress = async () => {
+      try {
+        const raw = await storage.getItem(CHECKOUT_ADDRESS_KEY);
+        if (cancelled || !raw) return;
+        const cached = JSON.parse(raw);
+        if (cached) {
+          if (!address && cached.address) setAddress(cached.address);
+          if (!city && cached.city) setCity(cached.city);
+          if (!zip && cached.zip) setZip(cached.zip);
+        }
+      } catch (e) {
+        // ignore cache errors
+      }
+    };
+    loadCachedAddress();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist address info whenever user edits them or auto-fill updates
+  useEffect(() => {
+    const save = async () => {
+      try {
+        const payload = { address, city, zip };
+        await storage.setItem(CHECKOUT_ADDRESS_KEY, JSON.stringify(payload));
+      } catch (e) {}
+    };
+    save();
+  }, [address, city, zip]);
   
   // Premium Alert States
   const [showLocationAlert, setShowLocationAlert] = useState(false);
@@ -127,12 +191,11 @@ const CheckoutScreen = ({ route, navigation }) => {
       scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       return;
     }
-    
+
     setIsLoading(true);
-    // Build the payload that would be sent to the backend and log it for reference
     try {
+      // Build minimal payload per backend contract
       const orderPayload = {
-        userId: 'guest', // replace with authenticated user id when available
         customer: {
           fullName,
           phone,
@@ -152,25 +215,36 @@ const CheckoutScreen = ({ route, navigation }) => {
           quantity: it.quantity || 1,
           lineTotal: Number((it.price * (it.quantity || 1)).toFixed(2)),
         })),
-        subtotal: Number(subtotal.toFixed(2)),
         shipping: Number(shipping.toFixed(2)),
-        total: Number(total.toFixed(2)),
-        detectedCity: detectedCity || null,
-        platform: 'mobile',
-        createdAt: new Date().toISOString(),
+        paymentMethod: 'COD',
+        detectedCity: detectedCity || city || null,
       };
-      console.log('SECTION: ORDER_PAYLOAD', orderPayload);
-    } catch (e) {}
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      if (!buyNowItem) {
-        clearCart();
+
+      const token = useAuthStore.getState().token;
+      if (!token) {
+        Alert.alert('Login required', 'Please login to place the order.');
+        setIsLoading(false);
+        navigation.navigate('Login', { redirectTo: 'Checkout' });
+        return;
       }
-      // Show premium success modal
+
+      const resp = await fetch(`${API_BASE}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(orderPayload),
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(errText || 'Failed to place order');
+      }
+      const json = await resp.json();
+      // Success UI
+      if (!buyNowItem) clearCart();
       setShowOrderSuccess(true);
-      // Start animations
       Animated.sequence([
         Animated.timing(successOpacityAnim, {
           toValue: 1,
@@ -189,7 +263,11 @@ const CheckoutScreen = ({ route, navigation }) => {
           useNativeDriver: true,
         }),
       ]).start();
-    }, 2000);
+    } catch (e) {
+      Alert.alert('Order failed', e?.message || 'Could not place order. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleContinueShopping = () => {
@@ -259,7 +337,7 @@ const CheckoutScreen = ({ route, navigation }) => {
       <Image source={{ uri: item.image }} style={styles.itemImage} />
       <View style={styles.itemInfo}>
         <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemVariant}>Size: {item.size || '-'} • Color: {item.color || '-'}</Text>
+        <Text style={styles.itemVariant}>Size: {item.size || '-'} </Text>
         <Text style={styles.itemQty}>Qty: {item.quantity || 1}</Text>
       </View>
       <Text style={styles.itemPrice}>${(item.price * (item.quantity || 1)).toFixed(2)}</Text>
@@ -416,6 +494,15 @@ const CheckoutScreen = ({ route, navigation }) => {
                               setZip((prev) => prev || String(addr.postcode));
                             }
                           }
+                          // Save to cache after auto-fill
+                          try {
+                            const payload = {
+                              address: line1 || address,
+                              city: foundCity || city,
+                              zip: (addr.postcode ? String(addr.postcode) : zip) || '',
+                            };
+                            await storage.setItem(CHECKOUT_ADDRESS_KEY, JSON.stringify(payload));
+                          } catch (e) {}
                         } catch (e) {
                           // ignore reverse geocode errors
                         }

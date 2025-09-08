@@ -1,71 +1,65 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
+import useAuthStore from '../store/authStore';
 
-// Sample orders data for UI (replace with API data later)
-const sampleOrders = [
-  {
-    id: 'ORD-2025-0001',
-    date: '2025-09-01',
-    status: 'Delivered',
-    subtotal: 489.98,
-    shipping: 250,
-    total: 739.98,
-    items: [
-      {
-        id: '1',
-        name: 'Elegant Evening Dress',
-        image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=600&fit=crop&auto=format',
-        size: 'XS',
-        color: 'Black',
-        price: 299.99,
-        quantity: 1,
-      },
-      {
-        id: '6',
-        name: 'Cashmere Sweater',
-        image: 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&h=600&fit=crop',
-        size: 'M',
-        color: 'Cream',
-        price: 189.99,
-        quantity: 1,
-      }
-    ]
-  },
-  {
-    id: 'ORD-2025-0002',
-    date: '2025-08-18',
-    status: 'Shipped',
-    subtotal: 299.99,
-    shipping: 350,
-    total: 649.99,
-    items: [
-      {
-        id: '3',
-        name: 'Designer Blazer',
-        image: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=600&fit=crop&auto=format',
-        size: 'S',
-        color: 'Camel',
-        price: 249.99,
-        quantity: 1,
-      },
-      {
-        id: '4',
-        name: 'High-Waist Trousers',
-        image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=600&fit=crop&auto=format',
-        size: 'S',
-        color: 'Navy',
-        price: 129.99,
-        quantity: 1,
-      }
-    ]
-  }
-];
+const API_BASE = 'http://192.168.18.11:3006';
 
 const OrdersScreen = ({ navigation }) => {
-  const orders = useMemo(() => sampleOrders, []);
+  const [orders, setOrders] = useState([]);
+  const token = useAuthStore((s) => s.token);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadOrders = async () => {
+      try {
+        if (!token) {
+          setOrders([]);
+          return;
+        }
+        const resp = await fetch(`${API_BASE}/orders`, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!resp.ok) {
+          const t = await resp.text();
+          throw new Error(t || 'Failed to load orders');
+        }
+        const json = await resp.json();
+        if (cancelled) return;
+        const mapped = Array.isArray(json)
+          ? json.map((o) => ({
+              id: o._id || '',
+              date: (o.createdAt || '').slice(0, 10),
+              status: (o.status || 'Pending').charAt(0).toUpperCase() + (o.status || 'Pending').slice(1),
+              subtotal: Number(o.subtotal || 0),
+              shipping: Number(o.shipping || 0),
+              total: Number(o.total || 0),
+              items: Array.isArray(o.items)
+                ? o.items.map((it) => ({
+                    id: String(it.productId || it.cartId || ''),
+                    name: it.name || '',
+                    image: it.image || '',
+                    size: it.size || '-',
+                    color: it.color || '-',
+                    price: Number(it.price || 0),
+                    quantity: Number(it.quantity || 1),
+                  }))
+                : [],
+            }))
+          : [];
+        setOrders(mapped);
+      } catch (e) {
+        setOrders([]);
+      }
+    };
+    loadOrders();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const renderOrderItemRow = ({ item }) => (
     <View style={styles.itemRow}>
@@ -90,9 +84,11 @@ const OrdersScreen = ({ navigation }) => {
           <Ionicons name="receipt-outline" size={18} color={Colors.primary} />
           <Text style={styles.orderId}>{item.id}</Text>
         </View>
-        <View style={[styles.statusPill, getStatusStyle(item.status)]}>
-          <Text style={styles.statusText}>{item.status}</Text>
-        </View>
+        {((item.status || '').toLowerCase() !== 'pending') && (
+          <View style={[styles.statusPill, getStatusStyle(item.status)]}>
+            <Text style={styles.statusText}>{item.status}</Text>
+          </View>
+        )}
       </View>
       <View style={styles.metaRow}>
         <Ionicons name="calendar-outline" size={16} color={Colors.textSecondary} />
@@ -155,6 +151,8 @@ const getStatusStyle = (status) => {
       return { backgroundColor: '#E8F5E9', borderColor: '#C8E6C9', color: '#2E7D32' };
     case 'shipped':
       return { backgroundColor: '#E3F2FD', borderColor: '#BBDEFB', color: '#1565C0' };
+    case 'pending':
+      return { backgroundColor: '#FFFDE7', borderColor: '#FFF9C4', color: '#8D6E63' };
     case 'processing':
       return { backgroundColor: '#FFFDE7', borderColor: '#FFF9C4', color: '#8D6E63' };
     default:
