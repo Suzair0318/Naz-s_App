@@ -10,6 +10,8 @@ const useAuthStore = create((set, get) => ({
   user: null, // { name, email }
   token: null,
   status: 'idle', // 'idle' | 'loading' | 'authenticated'
+  // temp redirect target to preserve navigation across auth flows
+  _redirectTarget: null, // { redirectTo, redirectParams }
 
   // Hydrate session from storage
   loadSession: async () => {
@@ -27,6 +29,17 @@ const useAuthStore = create((set, get) => ({
     } catch (e) {
       return null;
     }
+  },
+
+  // Store a temporary redirect target to be used after login
+  setRedirectTarget: ({ redirectTo, redirectParams }) => {
+    set({ _redirectTarget: redirectTo ? { redirectTo, redirectParams } : null });
+  },
+  // Consume and clear the temporary redirect target
+  consumeRedirectTarget: () => {
+    const target = get()._redirectTarget;
+    set({ _redirectTarget: null });
+    return target;
   },
 
   // POST /auth/login { email, password } -> { name, token }
@@ -88,8 +101,66 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  // Forgot password: request OTP to email
+  requestPasswordReset: async ({ email }) => {
+    try {
+      const resp = await fetch(`${API_BASE}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!resp.ok) {
+        const msg = await resp.text();
+        throw new Error(msg || 'Failed to request password reset');
+      }
+      return true;
+    } catch (e) {
+      throw e;
+    }
+  },
+
+  // Verify OTP sent to email
+  verifyOtp: async ({ email, otp }) => {
+    try {
+      const resp = await fetch(`${API_BASE}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+      if (!resp.ok) {
+        const msg = await resp.text();
+        throw new Error(msg || 'Invalid or expired OTP');
+      }
+      return true;
+    } catch (e) {
+      throw e;
+    }
+  },
+
+  // Reset password using verified OTP
+  resetPassword: async ({ email, otp, newPassword }) => {
+    try {
+      const resp = await fetch(`${API_BASE}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, password: newPassword }),
+      });
+      if (!resp.ok) {
+        const msg = await resp.text();
+        throw new Error(msg || 'Failed to reset password');
+      }
+      return true;
+    } catch (e) {
+      throw e;
+    }
+  },
+
   signOut: async () => {
-    await storage.multiRemove([TOKEN_KEY, USER_KEY]);
+    try {
+      // Remove specific keys and then clear all to ensure no residual cache remains
+      await storage.multiRemove([TOKEN_KEY, USER_KEY]);
+      await storage.clearAll();
+    } catch (e) {}
     set({ status: 'idle', user: null, token: null });
   },
 

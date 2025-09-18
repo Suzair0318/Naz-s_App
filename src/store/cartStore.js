@@ -20,10 +20,14 @@ const useCartStore = create((set, get) => ({
 
       const existingItem = state.items.find((item) => item.cartId === cartId);
       if (existingItem) {
+        const maxAvail = Number(
+          existingItem.availableQuantity ?? product.availableQuantity ?? Infinity
+        );
+        const nextQty = Math.min(existingItem.quantity + quantity, maxAvail);
         return {
           items: state.items.map((item) =>
             item.cartId === cartId
-              ? { ...item, quantity: item.quantity + quantity }
+              ? { ...item, quantity: Math.max(1, nextQty) }
               : item
           ),
         };
@@ -37,7 +41,13 @@ const useCartStore = create((set, get) => ({
         image: product.image,
         size: size || null,
         color: color || null,
-        quantity: Math.max(1, quantity || 1),
+        weight: Number(product.weight ?? 0),
+        availableQuantity: Number(product.availableQuantity ?? product.stock ?? Infinity),
+        quantity: (() => {
+          const maxAvail = Number(product.availableQuantity ?? product.stock ?? Infinity);
+          const base = Math.max(1, quantity || 1);
+          return Math.min(base, maxAvail);
+        })(),
       };
       return { items: [...state.items, newItem] };
     }),
@@ -47,9 +57,12 @@ const useCartStore = create((set, get) => ({
     })),
   updateQuantity: (cartId, newQuantity) =>
     set((state) => ({
-      items: state.items.map((item) =>
-        item.cartId === cartId ? { ...item, quantity: Math.max(1, newQuantity) } : item
-      ),
+      items: state.items.map((item) => {
+        if (item.cartId !== cartId) return item;
+        const maxAvail = Number(item.availableQuantity ?? Infinity);
+        const clamped = Math.max(1, Math.min(Number(newQuantity || 1), maxAvail));
+        return { ...item, quantity: clamped };
+      }),
     })),
   clearCart: () => set({ items: [] }),
   getTotalItems: () =>
@@ -107,7 +120,10 @@ const useCartStore = create((set, get) => ({
             const price = Number(p?.price || 0);
             const image = Array.isArray(p?.image) ? p.image[0] : p?.image;
             const size = entry?.size || null;
-            const quantity = Math.max(1, Number(entry?.quantity || 1));
+            const availableQuantity = Number(p?.availableQuantity ?? Infinity);
+            const weight = Number(p?.weight ?? 0);
+            const requestedQty = Math.max(1, Number(entry?.quantity || 1));
+            const quantity = Math.max(1, Math.min(requestedQty, availableQuantity));
             const cartId = `${id}_${size || ''}_`;
             return {
               cartId,
@@ -117,6 +133,8 @@ const useCartStore = create((set, get) => ({
               image,
               size,
               color: null,
+              availableQuantity,
+              weight,
               quantity,
             };
           })
@@ -235,12 +253,19 @@ useCartStore.setState({
     const state = useCartStore.getState();
     const item = state.items.find((i) => i.cartId === cartId);
     // optimistic local update
-    state.items = state.items.map((i) =>
-      i.cartId === cartId ? { ...i, quantity: Math.max(1, newQuantity) } : i
-    );
+    state.items = state.items.map((i) => {
+      if (i.cartId !== cartId) return i;
+      const maxAvail = Number(i.availableQuantity ?? Infinity);
+      const clamped = Math.max(1, Math.min(Number(newQuantity || 1), maxAvail));
+      return { ...i, quantity: clamped };
+    });
     useCartStore.setState({ items: state.items });
     // server update
-    if (item) state.patchItemQuantityOnServer(item.id, Math.max(1, newQuantity));
+    if (item) {
+      const maxAvail = Number(item.availableQuantity ?? Infinity);
+      const clamped = Math.max(1, Math.min(Number(newQuantity || 1), maxAvail));
+      state.patchItemQuantityOnServer(item.id, clamped);
+    }
   },
   removeFromCart: (cartId) => {
     const state = useCartStore.getState();

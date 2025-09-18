@@ -15,20 +15,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
+import useAuthStore from '../store/authStore';
+import useCartStore from '../store/cartStore';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 const ProfileScreen = ({ navigation, onScroll }) => {
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const signOut = useAuthStore((s) => s.signOut);
+  const user = useAuthStore((s) => s.user);
   const menuItems = [
     { id: '1', title: 'My Orders', icon: 'bag-outline', iconColor: '#4CAF50', screen: 'Orders' },
-    { id: '2', title: 'Wishlist', icon: 'heart-outline', iconColor: '#FF6B6B', screen: 'Wishlist' },
-    // { id: '3', title: 'Address Book', icon: 'location-outline', iconColor: '#4ECDC4', screen: 'Addresses' },
-    // { id: '4', title: 'Payment Methods', icon: 'card-outline', iconColor: '#45B7D1', screen: 'PaymentMethods' },
-    // { id: '5', title: 'Size Guide', icon: 'resize-outline', iconColor: '#96CEB4', screen: 'SizeGuide' },
     { id: '6', title: 'Customer Support', icon: 'chatbubble-ellipses-outline', iconColor: '#FECA57', screen: 'Support' },
-    // { id: '7', title: 'Settings', icon: 'settings-outline', iconColor: '#A8A8A8', screen: 'Settings' },
-    // { id: '8', title: 'About', icon: 'information-circle-outline', iconColor: '#6C5CE7', screen: 'About' },
   ];
 
   const renderHeader = () => (
@@ -36,50 +34,21 @@ const ProfileScreen = ({ navigation, onScroll }) => {
       <View style={styles.profileContainer}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatarGradient}>
-            <Ionicons name="person" size={28} color={Colors.textLight} />
+            <Text style={styles.avatarInitial}>
+              {(user?.name || 'User').charAt(0).toUpperCase()}
+            </Text>
           </View>
-          <TouchableOpacity style={styles.editButton}>
-            <Ionicons name="camera" size={12} color={Colors.textLight} />
-          </TouchableOpacity>
         </View>
         <View style={styles.profileInfo}>
-          <Text style={styles.userName}>Jane Doe</Text>
-          <Text style={styles.userEmail}>jane.doe@email.com</Text>
+          <Text style={styles.userName}>{user?.name || 'User'}</Text>
+          <Text style={styles.userEmail}>{user?.email || ''}</Text>
           {/* <View style={styles.memberBadge}> */}
             {/* <Ionicons name="diamond" size={14} color={Colors.primary} /> */}
             {/* <Text style={styles.memberSince}>VIP Member since 2023</Text> */}
           {/* </View> */}
         </View>
-        <TouchableOpacity style={styles.editProfileButton}>
-          <Ionicons name="create-outline" size={16} color={Colors.primary} />
-        </TouchableOpacity>
       </View>
       
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <View style={styles.statIconContainer}>
-            <Ionicons name="bag" size={16} color={Colors.primary} />
-          </View>
-          <Text style={styles.statNumber}>12</Text>
-          <Text style={styles.statLabel}>Orders</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <View style={styles.statIconContainer}>
-            <Ionicons name="heart" size={16} color="#FF6B6B" />
-          </View>
-          <Text style={styles.statNumber}>8</Text>
-          <Text style={styles.statLabel}>Wishlist</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <View style={styles.statIconContainer}>
-            <Ionicons name="star" size={16} color="#FFD700" />
-          </View>
-          <Text style={styles.statNumber}>4.9</Text>
-          <Text style={styles.statLabel}>Rating</Text>
-        </View>
-      </View>
     </View>
   );
 
@@ -117,8 +86,36 @@ const ProfileScreen = ({ navigation, onScroll }) => {
     </TouchableOpacity>
   );
 
+  const handleSignOutPress = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut();
+              try { useCartStore.getState().clearCart(); } catch (e) {}
+              // Notification removed per user request
+            } finally {
+              // Navigate back to Home
+              try {
+                navigation.navigate('MainTabs', { screen: 'Home' });
+              } catch (e) {
+                navigation.navigate('Home');
+              }
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderLogoutButton = () => (
-    <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8}>
+    <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8} onPress={handleSignOutPress}>
       <Ionicons name="log-out-outline" size={20} color={Colors.textLight} style={styles.logoutIcon} />
       <Text style={styles.logoutText}>Sign Out</Text>
     </TouchableOpacity>
@@ -228,7 +225,6 @@ const styles = StyleSheet.create({
   profileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
   },
   avatarContainer: {
     position: 'relative',
@@ -246,6 +242,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
+  },
+  avatarInitial: {
+    color: Colors.textLight,
+    fontSize: 28,
+    fontWeight: Fonts.weights.bold,
   },
   editButton: {
     position: 'absolute',

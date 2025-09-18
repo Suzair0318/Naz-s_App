@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, Image, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, Animated, Modal } from 'react-native';
+import { View, Text, StyleSheet, TextInput, FlatList, Image, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, Animated, Modal, AppState } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Geolocation from 'react-native-geolocation-service';
 import { PERMISSIONS, RESULTS, request, check, openSettings } from 'react-native-permissions';
@@ -12,6 +12,8 @@ import CustomButton from '../components/CustomButton';
 import PremiumAlert from '../components/PremiumAlert';
 import useAuthStore from '../store/authStore';
 import storage from '../utils/storage';
+import { useFocusEffect } from '@react-navigation/native';
+// Notifications removed per user request
 
 const CHECKOUT_ADDRESS_KEY = '@checkout_address';
 const API_BASE = 'http://192.168.18.11:3006';
@@ -31,11 +33,35 @@ const CheckoutScreen = ({ route, navigation }) => {
     if (navTotals?.subtotal != null) return navTotals.subtotal;
     return items.reduce((sum, it) => sum + (it.price * (it.quantity || 1)), 0);
   }, [items, navTotals]);
+  // Total weight in kg across all items
+  const totalWeight = useMemo(() => {
+    return items.reduce((sum, it) => sum + (Number(it.weight || 0) * Number(it.quantity || 1)), 0);
+  }, [items]);
   const [detectedCity, setDetectedCity] = useState(null);
   const [shipping, setShipping] = useState(
     navTotals?.shipping != null ? navTotals.shipping : (items.length > 0 ? 350 : 0)
   );
   const total = useMemo(() => subtotal + shipping, [subtotal, shipping]);
+
+  // Helpers for city and weight-based shipping
+  const isKarachiCity = (c) => (c || '').toLowerCase().includes('karachi');
+  // Remove administrative suffixes like 'Division'/'District' from city names for cleaner UI
+  const cleanCityName = (name) => {
+    const n = String(name || '');
+    return n
+      .replace(/\b(Division|District)\b/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  };
+
+  // Notifications removed per user request
+  const computeShipping = (weightKg, cityName, itemsCount) => {
+    if (navTotals?.shipping != null) return navTotals.shipping; // if explicitly provided, respect it
+    if (!itemsCount) return 0;
+    const basePerKg = isKarachiCity(cityName) ? 300 : 350;
+    const billedUnits = Math.max(1, Math.ceil(Number(weightKg || 0)));
+    return basePerKg * billedUnits;
+  };
 
   // Hydrate cart if user lands on Checkout without navItems/buyNowItem
   useEffect(() => {
@@ -55,25 +81,30 @@ const CheckoutScreen = ({ route, navigation }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, buyNowItem, navItems]);
 
-  // Detect user's city via IP and set shipping: Karachi = 250, Others = 350
+  // Detect user's city via IP and set weight-based shipping: Karachi = 300/kg, Others = 350/kg
   useEffect(() => {
     let cancelled = false;
     const detectCity = async () => {
       try {
+        setIsDetectingCity(true);
         const resp = await fetch('https://ipapi.co/json/?lang=en');
         const data = await resp.json();
         if (cancelled) return;
-        const city = (data?.city || '').trim();
+        const city = cleanCityName((data?.city || '').trim());
         if (city) setDetectedCity(city);
-        const isKarachi = city.toLowerCase().includes('karachi');
-        setShipping(items.length > 0 ? (isKarachi ? 250 : 350) : 0);
+        const newShipping = computeShipping(totalWeight, city, items.length);
+        setShipping(newShipping);
+        setLastShippingAt(Date.now());
       } catch (e) {
         // Fallback: keep default shipping; optionally set a placeholder city
         if (!cancelled) {
           setDetectedCity(null);
-          setShipping(items.length > 0 ? 350 : 0);
+          const fallback = computeShipping(totalWeight, null, items.length);
+          setShipping(fallback);
+          setLastShippingAt(Date.now());
         }
       }
+      setIsDetectingCity(false);
     };
     detectCity();
     return () => {
@@ -81,7 +112,37 @@ const CheckoutScreen = ({ route, navigation }) => {
     };
     // Re-evaluate when cart becomes empty/non-empty
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items.length]);
+  }, [items.length, totalWeight]);
+
+  // Re-validate when screen regains focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // On focus, recompute shipping with current city and weight
+      const cityName = (detectedCity || city || '').trim();
+      const newShipping = computeShipping(totalWeight, cityName, items.length);
+      if (newShipping !== shipping) {
+        setShipping(newShipping);
+        setLastShippingAt(Date.now());
+      }
+      return () => {};
+    }, [detectedCity, city, totalWeight, items.length, shipping])
+  );
+
+  // Re-validate when app returns to foreground
+  useEffect(() => {
+    const handler = (state) => {
+      if (state === 'active') {
+        const cityName = (detectedCity || city || '').trim();
+        const newShipping = computeShipping(totalWeight, cityName, items.length);
+        if (newShipping !== shipping) {
+          setShipping(newShipping);
+          setLastShippingAt(Date.now());
+        }
+      }
+    };
+    const sub = AppState.addEventListener('change', handler);
+    return () => sub?.remove?.();
+  }, [detectedCity, city, totalWeight, items.length, shipping]);
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -92,16 +153,24 @@ const CheckoutScreen = ({ route, navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [focusedField, setFocusedField] = useState(null);
+  const [lastOrderId, setLastOrderId] = useState(null);
+  // City resolution: allow either detectedCity or user-entered city
+  const isCityResolved = useMemo(() => {
+    const manual = (city || '').trim().length > 0;
+    const detected = (detectedCity || '').trim().length > 0;
+    return manual || detected;
+  }, [city, detectedCity]);
   const [askedLocationOnce, setAskedLocationOnce] = useState(false);
+  const [isDetectingCity, setIsDetectingCity] = useState(false);
+  const [lastShippingAt, setLastShippingAt] = useState(0);
 
   // React to manual city changes and update shipping accordingly when navTotals doesn't override
   useEffect(() => {
     // If shipping was injected via navTotals, don't override
     if (navTotals?.shipping != null) return;
-    const isKarachi = (city || '').toLowerCase().includes('karachi');
-    setShipping(items.length > 0 ? (isKarachi ? 250 : 350) : 0);
+    setShipping(computeShipping(totalWeight, city, items.length));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city, items.length]);
+  }, [city, items.length, totalWeight]);
 
   // Load cached address info on mount (only if fields are empty)
   useEffect(() => {
@@ -161,7 +230,12 @@ const CheckoutScreen = ({ route, navigation }) => {
       case 'fullName':
         return value.length < 2 ? 'Name must be at least 2 characters' : '';
       case 'phone':
-        return !/^[\d\s\-\+\(\)]{10,}$/.test(value.replace(/\s/g, '')) ? 'Please enter a valid phone number' : '';
+        {
+          const digits = String(value || '').replace(/\D/g, '');
+          if (digits.length !== 11) return 'Phone must be exactly 11 digits';
+          if (!digits.startsWith('03')) return "Phone must start with '03'";
+          return '';
+        }
       case 'address':
         return value.length < 5 ? 'Address must be at least 5 characters' : '';
       case 'city':
@@ -186,6 +260,11 @@ const CheckoutScreen = ({ route, navigation }) => {
   };
 
   const placeOrder = async () => {
+    // Block order placement if city is not resolved
+    if (!isCityResolved) {
+      Alert.alert('City required', 'Please wait for location detection or enter your city to calculate shipping.');
+      return;
+    }
     if (!validateForm()) {
       // Scroll to top to show validation errors
       scrollViewRef.current?.scrollTo({ y: 0, animated: true });
@@ -194,11 +273,21 @@ const CheckoutScreen = ({ route, navigation }) => {
 
     setIsLoading(true);
     try {
+      // Final re-check shipping just before placing order
+      const cityName = (detectedCity || city || '').trim();
+      const recomputedShipping = computeShipping(totalWeight, cityName, items.length);
+      if (recomputedShipping !== shipping) {
+        setIsLoading(false);
+        setShipping(recomputedShipping);
+        setLastShippingAt(Date.now());
+        Alert.alert('Shipping updated', 'We recalculated your shipping before placing the order. Please review and confirm.');
+        return;
+      }
       // Build minimal payload per backend contract
       const orderPayload = {
         customer: {
           fullName,
-          phone,
+          phone: String(phone || '').replace(/\D/g, ''),
           address,
           city,
           zip,
@@ -244,6 +333,13 @@ const CheckoutScreen = ({ route, navigation }) => {
       const json = await resp.json();
       // Success UI
       if (!buyNowItem) clearCart();
+
+      // Notifications removed per user request
+      try {
+        const oid = json?.order?.id || json?.id || null;
+        setLastOrderId(oid);
+      } catch (e) {}
+
       setShowOrderSuccess(true);
       Animated.sequence([
         Animated.timing(successOpacityAnim, {
@@ -270,13 +366,21 @@ const CheckoutScreen = ({ route, navigation }) => {
     }
   };
 
-  const handleContinueShopping = () => {
+  const handleViewOrderDetails = () => {
     // Reset animations
     successScaleAnim.setValue(0);
     successOpacityAnim.setValue(0);
     confettiAnim.setValue(0);
     setShowOrderSuccess(false);
-    navigation.navigate('MainTabs', { screen: 'Home' });
+    try {
+      if (lastOrderId) {
+        navigation.navigate('Orders', { orderId: lastOrderId });
+      } else {
+        navigation.navigate('Orders');
+      }
+    } catch (e) {
+      navigation.navigate('Orders');
+    }
   };
 
   const renderInput = (field, placeholder, value, setValue, iconName, keyboardType = 'default', multiline = false) => {
@@ -304,7 +408,12 @@ const CheckoutScreen = ({ route, navigation }) => {
             placeholderTextColor={Colors.textSecondary}
             value={value}
             onChangeText={(text) => {
-              setValue(text);
+              if (field === 'phone') {
+                const digits = text.replace(/\D/g, '').slice(0, 11);
+                setValue(digits);
+              } else {
+                setValue(text);
+              }
               if (hasError) {
                 const newErrors = { ...errors };
                 newErrors[field] = validateField(field, text);
@@ -317,6 +426,7 @@ const CheckoutScreen = ({ route, navigation }) => {
             multiline={multiline}
             numberOfLines={multiline ? 3 : 1}
             textAlignVertical={multiline ? 'top' : 'center'}
+            maxLength={field === 'phone' ? 11 : undefined}
           />
           {hasValue && !hasError && (
             <Ionicons name="checkmark-circle" size={20} color="#4CAF50" style={styles.validIcon} />
@@ -340,7 +450,7 @@ const CheckoutScreen = ({ route, navigation }) => {
         <Text style={styles.itemVariant}>Size: {item.size || '-'} </Text>
         <Text style={styles.itemQty}>Qty: {item.quantity || 1}</Text>
       </View>
-      <Text style={styles.itemPrice}>${(item.price * (item.quantity || 1)).toFixed(2)}</Text>
+      <Text style={styles.itemPrice}>Rs {(item.price * (item.quantity || 1)).toFixed(2)}</Text>
     </View>
   );
 
@@ -391,26 +501,33 @@ const CheckoutScreen = ({ route, navigation }) => {
             <Text style={styles.sectionTitle}>Summary</Text>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
-              <Text style={styles.summaryValue}>${subtotal.toFixed(2)}</Text>
+              <Text style={styles.summaryValue}>{subtotal}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Location</Text>
-              <Text style={styles.summaryValue}>{detectedCity ? detectedCity : 'Detecting...'}</Text>
+              <Text style={styles.summaryValue}>{detectedCity ? cleanCityName(detectedCity) : 'Detecting...'}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Total Weight</Text>
+              <Text style={styles.summaryValue}>{totalWeight.toFixed(2)} kg</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Shipping</Text>
-              <Text style={styles.summaryValue}>${shipping.toFixed(2)}</Text>
+              <Text style={styles.summaryValue}>{shipping.toFixed(2)}</Text>
             </View>
             <View style={[styles.summaryRow, styles.totalRow]}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
+              <Text style={styles.totalValue}>{total}</Text>
             </View>
           </View>
  
           <TouchableOpacity 
-            style={[styles.premiumOrderButton, isLoading && styles.loadingButton]} 
+            style={[
+              styles.premiumOrderButton,
+              (isLoading || !isCityResolved || isDetectingCity) && styles.loadingButton
+            ]} 
             onPress={placeOrder}
-            disabled={isLoading}
+            disabled={isLoading || !isCityResolved || isDetectingCity}
             activeOpacity={0.8}
           >
             <View style={styles.orderButtonContent}>
@@ -422,11 +539,14 @@ const CheckoutScreen = ({ route, navigation }) => {
               ) : (
                 <>
                   <Ionicons name="card-outline" size={20} color={Colors.textLight} style={styles.buttonIcon} />
-                  <Text style={styles.orderButtonText}>Place Order • ${total.toFixed(2)}</Text>
+                  <Text style={styles.orderButtonText}>
+                    {isCityResolved && !isDetectingCity ? `Place Order • Rs ${total.toFixed(2)}` : 'Detecting city...'}
+                  </Text>
                 </>
               )}
             </View>
           </TouchableOpacity>
+          {/* Notifications removed per user request */}
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 12, alignSelf: 'center' }}>
             <Text style={{ color: Colors.accent, fontSize: Fonts.sizes.sm }}>Back</Text>
           </TouchableOpacity>
@@ -472,6 +592,7 @@ const CheckoutScreen = ({ route, navigation }) => {
                           const foundCity = (
                             addr.city || addr.town || addr.village || addr.municipality || addr.county || ''
                           ).toString();
+                          const cleanFoundCity = cleanCityName(foundCity);
                           const parts = [
                             [addr.house_number, addr.road].filter(Boolean).join(' '),
                             addr.neighbourhood || addr.suburb || addr.quarter || addr.hamlet,
@@ -481,11 +602,10 @@ const CheckoutScreen = ({ route, navigation }) => {
                             addr.postcode,
                           ].filter(Boolean);
                           const line1 = parts.slice(0, 4).join(', ');
-                          if (foundCity) {
-                            setDetectedCity(foundCity);
-                            setCity((prev) => prev || foundCity);
-                            const isKarachi = foundCity.toLowerCase().includes('karachi');
-                            setShipping(items.length > 0 ? (isKarachi ? 250 : 350) : 0);
+                          if (cleanFoundCity) {
+                            setDetectedCity(cleanFoundCity);
+                            setCity((prev) => prev || cleanFoundCity);
+                            setShipping(computeShipping(totalWeight, cleanFoundCity, items.length));
                           }
                           if (line1) {
                             setAddress((prev) => prev || line1);
@@ -498,7 +618,7 @@ const CheckoutScreen = ({ route, navigation }) => {
                           try {
                             const payload = {
                               address: line1 || address,
-                              city: foundCity || city,
+                              city: cleanFoundCity || city,
                               zip: (addr.postcode ? String(addr.postcode) : zip) || '',
                             };
                             await storage.setItem(CHECKOUT_ADDRESS_KEY, JSON.stringify(payload));
@@ -580,7 +700,7 @@ const CheckoutScreen = ({ route, navigation }) => {
               style={styles.modalGradientBackground}
             >
               {/* Confetti Animation */}
-              <Animated.View 
+              {/* <Animated.View 
                 style={[
                   styles.confettiContainer,
                   {
@@ -599,7 +719,7 @@ const CheckoutScreen = ({ route, navigation }) => {
                 <Text style={styles.confettiEmoji}>🛍️</Text>
                 <Text style={styles.confettiEmoji}>💎</Text>
                 <Text style={styles.confettiEmoji}>🎊</Text>
-              </Animated.View>
+              </Animated.View> */}
 
               {/* Success Icon with Premium Background */}
               <Animated.View 
@@ -642,7 +762,7 @@ const CheckoutScreen = ({ route, navigation }) => {
                       <View style={styles.summaryIconContainer}>
                         <Ionicons name="receipt-outline" size={18} color={Colors.primary} />
                       </View>
-                      <Text style={styles.summaryText}>Order Total: ${total.toFixed(2)}</Text>
+                      <Text style={styles.summaryText}>Order Total: Rs {total.toFixed(2)}</Text>
                     </View>
                     <View style={styles.summaryRow}>
                       <View style={styles.summaryIconContainer}>
@@ -663,15 +783,17 @@ const CheckoutScreen = ({ route, navigation }) => {
               {/* Premium Action Button */}
               <TouchableOpacity 
                 style={styles.premiumActionButton}
-                onPress={handleContinueShopping}
+                onPress={handleViewOrderDetails}
                 activeOpacity={0.8}
               >
                 <LinearGradient
                   colors={[Colors.primary, '#2C2C2C']}
                   style={styles.actionButtonGradient}
                 >
-                  <Ionicons name="storefront-outline" size={20} color="#FFFFFF" />
-                  <Text style={styles.actionButtonText}>Continue Shopping</Text>
+                  <Ionicons name="receipt-outline" size={20} color="#FFFFFF" />
+                  <Text style={styles.actionButtonText}>
+                    {lastOrderId ? 'View Order Details' : 'Go to My Orders'}
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
             </LinearGradient>
@@ -866,11 +988,13 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.sm, 
     color: Colors.textSecondary,
     fontWeight: Fonts.weights.medium,
+    flex: 1,
   },
   summaryValue: { 
     fontSize: Fonts.sizes.sm, 
     color: Colors.textPrimary, 
     fontWeight: Fonts.weights.semiBold,
+    textAlign: 'right',
   },
   totalRow: { 
     borderTopWidth: 2, 
@@ -888,12 +1012,14 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary, 
     fontWeight: Fonts.weights.bold,
     letterSpacing: -0.1,
+    flex: 1,
   },
   totalValue: { 
     fontSize: Fonts.sizes.lg, 
     color: Colors.primary, 
     fontWeight: Fonts.weights.extraBold,
     letterSpacing: -0.2,
+    textAlign: 'right',
   },
   
   // Premium Order Button

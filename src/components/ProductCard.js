@@ -1,15 +1,109 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
+import useAuthStore from '../store/authStore';
+import storage from '../utils/storage';
+
+// Keep base aligned with other screens
+const API_BASE = 'http://192.168.18.11:3006';
 
 const ProductCard = ({ product, onPress, onToggleWishlist }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const wishlistScaleAnim = useRef(new Animated.Value(1)).current;
+  const { token } = useAuthStore();
 
-  const handleWishlistToggle = () => {
+  const CACHE_KEY = 'wishlist:v1';
+
+  const readGuestWishlist = async () => {
+    try {
+      const raw = await storage.getItem(CACHE_KEY);
+      if (!raw) return { items: [] };
+      const parsed = JSON.parse(raw);
+      return { items: Array.isArray(parsed?.items) ? parsed.items : [] };
+    } catch (e) {
+      return { items: [] };
+    }
+  };
+
+  const writeGuestWishlist = async (items) => {
+    try {
+      await storage.setItem(CACHE_KEY, JSON.stringify({ items }));
+    } catch (e) {
+      // noop
+    }
+  };
+
+  // Initialize heart state for guests based on cache
+  useEffect(() => {
+    let isActive = true;
+    const init = async () => {
+      const pid = String(product?.id || product?._id || '').trim();
+      if (!pid) return;
+      if (!token) {
+        try {
+          const raw = await storage.getItem(CACHE_KEY);
+          const parsed = raw ? JSON.parse(raw) : null;
+          const ids = Array.isArray(parsed?.items) ? parsed.items : [];
+          if (isActive) setIsWishlisted(ids.includes(pid));
+        } catch (_) {
+          // ignore
+        }
+      }
+    };
+    init();
+    return () => { isActive = false; };
+  }, [product, token]);
+
+  const addToWishlist = async (pid) => {
+    if (!pid) return false;
+    if (!token) {
+      const { items } = await readGuestWishlist();
+      if (!items.includes(pid)) {
+        items.push(pid);
+        await writeGuestWishlist(items);
+      }
+      return true;
+    }
+    try {
+      const resp = await fetch(`${API_BASE}/wishlist/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ productId: pid }),
+      });
+      return resp.ok;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const removeFromWishlist = async (pid) => {
+    if (!pid) return false;
+    if (!token) {
+      const { items } = await readGuestWishlist();
+      const next = items.filter((id) => id !== pid);
+      await writeGuestWishlist(next);
+      return true;
+    }
+    try {
+      const resp = await fetch(`${API_BASE}/wishlist/${pid}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return resp.ok;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const handleWishlistToggle = async () => {
     // Wishlist button animation
     Animated.sequence([
       Animated.timing(wishlistScaleAnim, {
@@ -29,9 +123,20 @@ const ProductCard = ({ product, onPress, onToggleWishlist }) => {
       }),
     ]).start();
 
-    setIsWishlisted(!isWishlisted);
+    const pid = String(product?.id || product?._id || '').trim();
+    if (!pid) return;
+
+    let success = false;
+    if (!isWishlisted) {
+      success = await addToWishlist(pid);
+      if (success) setIsWishlisted(true);
+    } else {
+      success = await removeFromWishlist(pid);
+      if (success) setIsWishlisted(false);
+    }
+
     if (onToggleWishlist) {
-      onToggleWishlist();
+      onToggleWishlist(pid, success, !isWishlisted);
     }
   };
   const calculateDiscount = () => {

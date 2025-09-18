@@ -144,6 +144,8 @@ const ProductDetailScreen = ({ route, navigation }) => {
             sizes: sizesArr,
             description: p.description ?? '',
             points: pointsArr,
+            availableQuantity: Number(p.availableQuantity ?? initialProduct?.availableQuantity ?? Infinity),
+            weight: Number(p.weight ?? initialProduct?.weight ?? 0),
           };
           setProduct(mapped);
         }
@@ -300,15 +302,15 @@ const ProductDetailScreen = ({ route, navigation }) => {
       <Text style={[styles.category, { fontSize: 12 }]}>{product.category}</Text>
       <Text style={[styles.productName, { fontSize: 20 }]}>{product.name}</Text>
       
-      <View style={styles.ratingContainer}>
+      {/* <View style={styles.ratingContainer}>
         <Text style={[styles.rating, { fontSize: 13 }]}>★ {product.rating}</Text>
         <Text style={[styles.reviews, { fontSize: 12 }]}>({product.reviews} reviews)</Text>
-      </View>
+      </View> */}
 
       <View style={styles.priceContainer}>
-        <Text style={[styles.price, { fontSize: 20 }]}>${product.price}</Text>
+        <Text style={[styles.price, { fontSize: 20 }]}>Rs {product.price}</Text>
         {product.originalPrice && (
-          <Text style={[styles.originalPrice, { fontSize: 12 }]}>${product.originalPrice}</Text>
+          <Text style={[styles.originalPrice, { fontSize: 12 }]}>{product.originalPrice}</Text>
         )}
         {product.isSale && (
           <View style={styles.discountBadge}>
@@ -384,7 +386,10 @@ const ProductDetailScreen = ({ route, navigation }) => {
         <Text style={styles.quantityText}>{quantity}</Text>
         <BounceTouchable
           style={styles.quantityButton}
-          onPress={() => setQuantity(quantity + 1)}
+          onPress={() => {
+            const maxAvail = Number(product?.availableQuantity ?? Infinity);
+            setQuantity((prev) => Math.max(1, Math.min(prev + 1, maxAvail)));
+          }}
         >
           <Text style={styles.quantityButtonText}>+</Text>
         </BounceTouchable>
@@ -433,6 +438,8 @@ const ProductDetailScreen = ({ route, navigation }) => {
             image: product.image,
             size: selectedSize,
             color: selectedColor,
+            availableQuantity: Number(product.availableQuantity ?? Infinity),
+            weight: Number(product.weight ?? 0),
           };
           addToCart(payload, quantity);
           navigation.navigate('MainTabs', { screen: 'Cart' });
@@ -458,7 +465,9 @@ const ProductDetailScreen = ({ route, navigation }) => {
             image: product.image,
             size: selectedSize,
             color: selectedColor,
-            quantity,
+            quantity: Math.max(1, Math.min(Number(quantity || 1), Number(product?.availableQuantity ?? Infinity))),
+            availableQuantity: Number(product.availableQuantity ?? Infinity),
+            weight: Number(product.weight ?? 0),
           };
           navigation.navigate('Checkout', { buyNowItem: buyItem });
         }}

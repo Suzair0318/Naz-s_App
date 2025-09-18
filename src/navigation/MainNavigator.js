@@ -10,9 +10,11 @@ import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
 import OrdersScreen from '../screens/OrdersScreen';
 import OrderDetailScreen from '../screens/OrderDetailScreen';
-import WishlistScreen from '../screens/WishlistScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import VerifyOtpScreen from '../screens/VerifyOtpScreen';
+import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 
 const Stack = createStackNavigator();
 
@@ -44,7 +46,7 @@ const MainNavigator = () => {
           name="ProductDetail" 
           component={ProductDetailScreen}
           options={{
-            gestureEnabled: false,
+            gestureEnabled: true,
           }}
         />
         <Stack.Screen 
@@ -72,6 +74,30 @@ const MainNavigator = () => {
             gestureEnabled: true,
           }}
         />
+        <Stack.Screen
+          name="ForgotPassword"
+          component={ForgotPasswordScreen}
+          options={{
+            headerShown: false,
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen
+          name="VerifyOtp"
+          component={VerifyOtpScreen}
+          options={{
+            headerShown: false,
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen
+          name="ResetPassword"
+          component={ResetPasswordScreen}
+          options={{
+            headerShown: false,
+            gestureEnabled: true,
+          }}
+        />
         <Stack.Screen 
           name="Orders" 
           component={OrdersScreen}
@@ -86,13 +112,7 @@ const MainNavigator = () => {
             gestureEnabled: true,
           }}
         />
-        <Stack.Screen 
-          name="Wishlist" 
-          component={WishlistScreen}
-          options={{
-            gestureEnabled: true,
-          }}
-        />
+        {/** Wishlist screen removed per requirements */}
       </Stack.Navigator>
     </NavigationContainer>
   );

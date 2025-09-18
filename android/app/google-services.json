@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "152526158074",
+    "project_id": "naz-app-e93e0",
+    "storage_bucket": "naz-app-e93e0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:152526158074:android:b889299f70efec0a9f3143",
+        "android_client_info": {
+          "package_name": "com.naz"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPSTli8I0zwZtE0bKEqG-_gCssTXzyH5I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

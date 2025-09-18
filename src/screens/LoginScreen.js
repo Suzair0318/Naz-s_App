@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -7,21 +7,27 @@ import { Fonts } from '../constants/Fonts';
 import useAuthStore from '../store/authStore';
 import useCartStore from '../store/cartStore';
 
-
 const sample = {
     "email": "jane@example.com",
     "password": "StrongP@ssw0rd"
   }
 
-
 const LoginScreen = ({ navigation, route }) => {
-  const { signIn, status } = useAuthStore();
+  const { signIn, status, setRedirectTarget, consumeRedirectTarget } = useAuthStore();
   const syncCartAfterLogin = useCartStore((s) => s.syncCartAfterLogin);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const loading = status === 'loading';
+
+  // Persist redirect target (e.g., to Checkout) so it's not lost across flows
+  useEffect(() => {
+    const { redirectTo, redirectParams } = route.params || {};
+    if (redirectTo) {
+      setRedirectTarget({ redirectTo, redirectParams });
+    }
+  }, [route?.params?.redirectTo, route?.params?.redirectParams]);
 
   const handleLogin = async () => {
     setError('');
@@ -30,14 +36,27 @@ const LoginScreen = ({ navigation, route }) => {
       // Persist any pre-login cart to the backend now that we have a token
       await syncCartAfterLogin();
       const { redirectTo, redirectParams } = route.params || {};
-      if (redirectTo) {
-        navigation.replace(redirectTo, redirectParams);
-      } else {
+      const fallbackTarget = consumeRedirectTarget?.() || null;
+      const target = redirectTo ? { redirectTo, redirectParams } : fallbackTarget;
+      if (target?.redirectTo) {
+        navigation.replace(target.redirectTo, target.redirectParams);
+      } else if (navigation.canGoBack && navigation.canGoBack()) {
         navigation.goBack();
+      } else {
+        // Safe fallback if there's no back stack
+        navigation.replace('MainTabs', { screen: 'Home' });
       }
     } catch (e) {
       setError('Failed to sign in. Please try again.');
     }
+  };
+
+  const handleForgotPassword = () => {
+    const { redirectTo, redirectParams } = route.params || {};
+    if (redirectTo) {
+      setRedirectTarget({ redirectTo, redirectParams });
+    }
+    navigation.navigate('ForgotPassword', { redirectTo, redirectParams });
   };
 
   const handleSignupRedirect = () => {
@@ -80,6 +99,9 @@ const LoginScreen = ({ navigation, route }) => {
             secureTextEntry
           />
         </View>
+        <TouchableOpacity style={styles.forgotRow} onPress={handleForgotPassword}>
+          <Text style={styles.forgotText}>Forgot password?</Text>
+        </TouchableOpacity>
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TouchableOpacity
@@ -119,6 +141,16 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     padding: 8,
     borderRadius: 16,
+  },
+  forgotRow: {
+    alignSelf: 'flex-end',
+    marginTop: -6,
+    marginBottom: 12,
+  },
+  forgotText: {
+    color: Colors.primary,
+    fontSize: Fonts.sizes.sm,
+    fontWeight: Fonts.weights.semiBold,
   },
   title: {
     marginTop: 8,

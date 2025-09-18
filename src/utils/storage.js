@@ -37,6 +37,11 @@ const storage = {
     keys.forEach((k) => memory.delete(k));
     return null;
   },
+  clearAll: async () => {
+    if (AsyncStorage && AsyncStorage.clear) return AsyncStorage.clear();
+    memory.clear();
+    return null;
+  },
 };
 
 export default storage;

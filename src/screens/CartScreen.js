@@ -87,7 +87,9 @@ const CartScreen = ({ navigation, onScroll }) => {
   const changeQty = (cartId, change) => {
     const item = cartItems.find(i => i.cartId === cartId);
     if (!item) return;
-    updateQuantity(cartId, Math.max(1, (item.quantity || 1) + change));
+    const maxAvail = Number(item.availableQuantity ?? Infinity);
+    const next = Math.max(1, Math.min((item.quantity || 1) + change, maxAvail));
+    updateQuantity(cartId, next);
   };
 
   const removeItem = (cartId) => removeFromCart(cartId);
@@ -118,16 +120,16 @@ const CartScreen = ({ navigation, onScroll }) => {
       <View style={styles.itemDetails}>
         <View style={styles.itemHeader}>
           <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-          <Text style={styles.itemPrice}>${item.price}</Text>
+          <Text style={styles.itemPrice}>Rs {item.price}</Text>
         </View>
         
         <View style={styles.variantContainer}>
           <View style={styles.variantChip}>
             <Text style={styles.variantText}>Size: {item.size || 'XS'}</Text>
           </View>
-          <View style={styles.variantChip}>
+          {/* <View style={styles.variantChip}>
             <Text style={styles.variantText}>{item.color || 'Floral Print'}</Text>
-          </View>
+          </View> */}
         </View>
         
         <View style={styles.bottomRow}>
@@ -144,7 +146,7 @@ const CartScreen = ({ navigation, onScroll }) => {
             >
               <Text style={styles.quantityButtonText}>+</Text>
             </TouchableOpacity>      
-          <Text style={styles.itemTotal}>${(item.price * item.quantity).toFixed(2)}</Text>
+          <Text style={styles.itemTotal}>Rs {(item.price * item.quantity)}</Text>
         </View>
       </View>
     </View>
@@ -156,7 +158,7 @@ const CartScreen = ({ navigation, onScroll }) => {
       
       <View style={[styles.summaryRow, styles.totalRow]}>
         <Text style={styles.totalLabel}>Total</Text>
-        <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
+        <Text style={styles.totalValue}>{total}</Text>
       </View>
     </View>
   );

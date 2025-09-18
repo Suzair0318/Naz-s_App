@@ -57,6 +57,12 @@ react {
     autolinkLibrariesWithApp()
 }
 
+// Ensure repositories are available at the project level for dependency resolution
+repositories {
+    google()
+    mavenCentral()
+}
+
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
@@ -114,9 +120,40 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
+    // Add explicit AndroidX dependencies to avoid conflicts
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    
+    // Add this to force the use of AndroidX Core
+    implementation 'androidx.core:core:1.12.0'
+    
+    // Add this to exclude the conflicting support library
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
+    
+    // Add these to resolve potential conflicts with react-native-push-notification
+    implementation 'com.google.firebase:firebase-messaging:23.4.1'
+    implementation 'com.google.android.gms:play-services-base:18.3.0'
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
+    }
+    
+    // Add this to exclude any old support library dependencies
+    configurations.all {
+        resolutionStrategy {
+            // Force specific versions of dependencies
+            force 'androidx.core:core:1.12.0',
+                  'androidx.core:core-ktx:1.12.0',
+                  'androidx.appcompat:appcompat:1.6.1',
+                  'com.google.android.material:material:1.11.0'
+                  
+            // Exclude old support library dependencies
+            exclude group: 'com.android.support', module: 'support-compat'
+            exclude group: 'com.android.support', module: 'support-core-utils'
+            exclude group: 'com.android.support', module: 'support-core-ui'
+        }
     }
 }

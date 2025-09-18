@@ -21,6 +21,7 @@ import ProductCard from '../components/ProductCard';
 import CategoryCard from '../components/CategoryCard';
 import CustomButton from '../components/CustomButton';
 import Naz_Logo from '../assets/images/naz_logo.jpeg'
+import useAuthStore from '../store/authStore';
 
 const { width } = Dimensions.get('window');
 
@@ -258,6 +259,10 @@ const HomeScreen = ({ navigation, onScroll }) => {
   // Featured (On Sale) products fetched from backend
   const [apiFeaturedOnSale, setApiFeaturedOnSale] = useState([]);
   const [featuredLoading, setFeaturedLoading] = useState(false);
+  // Wishlist state (only for authenticated users)
+  const [wishlistIds, setWishlistIds] = useState([]);
+  const [wishlistProducts, setWishlistProducts] = useState([]);
+  const { token } = useAuthStore();
 
   useEffect(() => {
     // Header entrance animation
@@ -279,6 +284,99 @@ const HomeScreen = ({ navigation, onScroll }) => {
       }),
     ]).start();
   }, []);
+
+  // Fetch wishlist for authenticated users
+  useEffect(() => {
+    const loadWishlist = async () => {
+      if (!token) {
+        // Per requirement: if user not logged in, do nothing (and hide section)
+        setWishlistIds([]);
+        setWishlistProducts([]);
+        return;
+      }
+      try {
+        const resp = await fetch(`${API_BASE}/wishlist`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        // Accept either:
+        // - { items: [id,...] }
+        // - { items: [ { productId: { ...product } }, ... ] }
+        // - [ { ...product }, ... ]
+        let ids = [];
+        if (Array.isArray(data)) {
+          // If API returns array of product objects
+          const mapped = data.map((p) => ({
+            id: String(p._id ?? p.id),
+            name: p.name,
+            price: Number(p.price ?? 0),
+            originalPrice: p.cutPrice != null ? Number(p.cutPrice) : (p.originalPrice ?? null),
+            image: normalizeImageUrl(Array.isArray(p.image) ? (p.image[0] || '') : (p.image || '')),
+            rating: Number(p.rating ?? 4.7),
+            reviews: Number(p.reviews ?? 0),
+            isNew: !!p.isNew,
+            isSale: !!p.isSale,
+            category: p.category ?? '',
+            colors: Array.isArray(p.colors) ? p.colors : [],
+            sizes: Array.isArray(p.sizes) ? p.sizes : [],
+            description: p.description ?? '',
+            points: Array.isArray(p.points) ? p.points : [],
+          }));
+          setWishlistProducts(mapped);
+          setWishlistIds(mapped.map((m) => m.id));
+          return;
+        }
+        if (Array.isArray(data?.items)) {
+          // Could be array of productId objects or simple id array
+          const first = data.items[0];
+          if (first && typeof first === 'object' && first.productId && typeof first.productId === 'object') {
+            const mapped = data.items.map(({ productId: p }) => ({
+              id: String(p._id ?? p.id),
+              name: p.name,
+              price: Number(p.price ?? 0),
+              originalPrice: p.cutPrice != null ? Number(p.cutPrice) : (p.originalPrice ?? null),
+              image: normalizeImageUrl(Array.isArray(p.image) ? (p.image[0] || '') : (p.image || '')),
+              rating: Number(p.rating ?? 4.7),
+              reviews: Number(p.reviews ?? 0),
+              isNew: !!p.isNew,
+              isSale: !!p.isSale,
+              category: p.category ?? '',
+              colors: Array.isArray(p.colors) ? p.colors : [],
+              sizes: Array.isArray(p.sizes) ? p.sizes : [],
+              description: p.description ?? '',
+              points: Array.isArray(p.points) ? p.points : [],
+            }));
+            setWishlistProducts(mapped);
+            setWishlistIds(mapped.map((m) => m.id));
+          } else {
+            ids = data.items.map((x) => String(x));
+            setWishlistIds(ids);
+          }
+        } else {
+          // Unknown payload; clear section gracefully
+          setWishlistIds([]);
+          setWishlistProducts([]);
+        }
+      } catch (e) {
+        // fail silently
+      }
+    };
+    loadWishlist();
+  }, [token]);
+
+  // Build wishlistProducts by mapping ids to already fetched product feeds
+  useEffect(() => {
+    if (!token) return; // guests: do nothing per requirement
+    if (!wishlistIds || wishlistIds.length === 0) {
+      setWishlistProducts([]);
+      return;
+    }
+    const byId = new Map();
+    [...apiNewArrivals, ...apiFeaturedOnSale].forEach((p) => byId.set(String(p.id), p));
+    const mapped = wishlistIds.map((id) => byId.get(String(id))).filter(Boolean);
+    setWishlistProducts(mapped);
+  }, [wishlistIds, apiNewArrivals, apiFeaturedOnSale, token]);
 
   // Fetch Featured (On Sale) products and map to ProductCard shape
   useEffect(() => {
@@ -744,6 +842,33 @@ const HomeScreen = ({ navigation, onScroll }) => {
     );
   };
 
+  // Wishlist section (only for authenticated users with items)
+  const renderWishlistSection = () => {
+    if (!token) return null;
+    if (!wishlistProducts || wishlistProducts.length === 0) return null;
+    return (
+      <View style={styles.featuredSection}>
+        {renderSectionHeader('Your Wishlist', null)}
+        <FlatList
+          data={wishlistProducts}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={({ item }) => (
+            <View style={styles.horizontalFeaturedCard}>
+              <ProductCard
+                product={item}
+                onPress={() => navigation.navigate('ProductDetail', { productId: item.id || item._id })}
+                onToggleWishlist={() => { /* optional: refresh here if needed */ }}
+              />
+            </View>
+          )}
+          contentContainerStyle={styles.featuredProductsList}
+        />
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {renderHeader()}
@@ -752,6 +877,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
         {renderCategories()}
         {renderNewArrivals()}
         {renderFeaturedProducts()}
+        {typeof renderWishlistSection === 'function' ? renderWishlistSection() : null}
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>

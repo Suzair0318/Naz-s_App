@@ -3,6 +3,7 @@ import { StatusBar } from 'react-native';
 import MainNavigator from './src/navigation/MainNavigator';
 import { Colors } from './src/constants/Colors';
 import useAuthStore from './src/store/authStore';
+// Notifications removed per user request
 
 function App() {
   const loadSession = useAuthStore((s) => s.loadSession);
@@ -10,6 +11,7 @@ function App() {
   useEffect(() => {
     // Restore token/user from storage on app start
     loadSession();
+    // Notifications removed; nothing to initialize
   }, [loadSession]);
 
   return (
