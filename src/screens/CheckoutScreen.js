@@ -820,7 +820,8 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary, 
     marginBottom: 24,
     textAlign: 'center',
-    letterSpacing: -0.5
+    letterSpacing: -0.5,
+    fontFamily: Fonts.families.heading,
   },
   section: { 
     backgroundColor: Colors.surfaceElevated, 
@@ -841,7 +842,8 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.bold, 
     color: Colors.textPrimary, 
     marginBottom: 16,
-    letterSpacing: -0.2
+    letterSpacing: -0.2,
+    fontFamily: Fonts.families.heading,
   },
   formRow: {},
   
@@ -882,6 +884,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     paddingVertical: 14,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   multilineInput: {
     minHeight: 80,
@@ -902,6 +905,7 @@ const styles = StyleSheet.create({
     color: '#FF4444',
     marginLeft: 6,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   
   // Payment Method Styles
@@ -927,11 +931,13 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.semiBold,
     color: Colors.textPrimary,
     marginBottom: 2,
+    fontFamily: Fonts.families.body,
   },
   paymentMethodDesc: {
     fontSize: Fonts.sizes.xs,
     color: Colors.textSecondary,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   
   // Item Row Styles
@@ -959,22 +965,26 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.semiBold, 
     color: Colors.textPrimary,
     marginBottom: 3,
+    fontFamily: Fonts.families.body,
   },
   itemVariant: { 
     fontSize: Fonts.sizes.xs, 
     color: Colors.textSecondary, 
     marginBottom: 3,
+    fontFamily: Fonts.families.body,
   },
   itemQty: { 
     fontSize: Fonts.sizes.xs, 
     color: Colors.textSecondary,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   itemPrice: { 
     fontSize: Fonts.sizes.md, 
     fontWeight: Fonts.weights.bold, 
     color: Colors.primary,
     letterSpacing: -0.1,
+    fontFamily: Fonts.families.body,
   },
   
   // Summary Styles
@@ -989,12 +999,14 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontWeight: Fonts.weights.medium,
     flex: 1,
+    fontFamily: Fonts.families.body,
   },
   summaryValue: { 
     fontSize: Fonts.sizes.sm, 
     color: Colors.textPrimary, 
     fontWeight: Fonts.weights.semiBold,
     textAlign: 'right',
+    fontFamily: Fonts.families.body,
   },
   totalRow: { 
     borderTopWidth: 2, 
@@ -1013,6 +1025,7 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.bold,
     letterSpacing: -0.1,
     flex: 1,
+    fontFamily: Fonts.families.body,
   },
   totalValue: { 
     fontSize: Fonts.sizes.lg, 
@@ -1020,6 +1033,7 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.extraBold,
     letterSpacing: -0.2,
     textAlign: 'right',
+    fontFamily: Fonts.families.body,
   },
   
   // Premium Order Button
@@ -1054,6 +1068,7 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.bold,
     color: Colors.textLight,
     letterSpacing: 0.3,
+    fontFamily: Fonts.families.body,
   },
 
   // Premium Order Success Modal Styles
@@ -1127,6 +1142,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
+    fontFamily: Fonts.families.heading,
   },
   brandDivider: {
     width: 50,
@@ -1146,6 +1162,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
     letterSpacing: -0.3,
+    fontFamily: Fonts.families.heading,
   },
   successSubtitle: {
     fontSize: Fonts.sizes.md,
@@ -1154,6 +1171,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 12,
     letterSpacing: 0.2,
+    fontFamily: Fonts.families.body,
   },
   successMessage: {
     fontSize: Fonts.sizes.sm,
@@ -1163,6 +1181,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 10,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   orderSummaryCard: {
     alignSelf: 'stretch',
@@ -1194,6 +1213,7 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.semiBold,
     flex: 1,
     letterSpacing: 0.1,
+    fontFamily: Fonts.families.body,
   },
   premiumActionButton: {
     borderRadius: 22,
@@ -1221,6 +1241,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
+    fontFamily: Fonts.families.body,
   },
 });
 

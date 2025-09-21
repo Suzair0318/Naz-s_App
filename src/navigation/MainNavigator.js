@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.xs,
     fontWeight: Fonts.weights.medium,
     marginTop: 4,
+    fontFamily: Fonts.families.body,
   },
   tabBarItem: {
     paddingVertical: 8,
@@ -167,6 +168,7 @@ const styles = StyleSheet.create({
     color: Colors.textWhite,
     fontSize: 10,
     fontWeight: 'bold',
+    fontFamily: Fonts.families.body,
   },
 });
 

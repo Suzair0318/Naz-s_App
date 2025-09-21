@@ -167,6 +167,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 12,
     letterSpacing: -0.3,
+    fontFamily: Fonts.families.heading,
   },
   alertMessage: {
     fontSize: Fonts.sizes.sm,
@@ -174,6 +175,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   buttonContainer: {
     width: '100%',
@@ -210,6 +212,7 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.md,
     fontWeight: Fonts.weights.semiBold,
     letterSpacing: 0.2,
+    fontFamily: Fonts.families.body,
   },
   primaryButtonText: {
     color: Colors.textLight,

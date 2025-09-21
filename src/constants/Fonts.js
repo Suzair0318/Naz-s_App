@@ -1,7 +1,14 @@
 // Typography system for premium feel
 export const Fonts = {
-  // Font families
-  primary: 'System', // Using system fonts for now
+  // Font families - Premium pairing for luxury fashion brand
+  families: {
+    heading: 'PlayfairDisplay', // Elegant serif for titles, brand name, section headers
+    body: 'Inter', // Clean modern sans for body text, buttons, descriptions
+    accent: 'PlayfairDisplay', // For special emphasis text
+  },
+  
+  // Legacy support
+  primary: 'Inter', // Default fallback
   
   // Font sizes
   sizes: {

@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import useCartStore from '../store/cartStore';
 import { Colors } from '../constants/Colors';
+import { Fonts } from '../constants/Fonts';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 // API base (match other screens)
@@ -515,6 +516,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#666666',
     fontWeight: '500',
+    fontFamily: Fonts.families.body,
   },
   header: {
     flexDirection: 'row',
@@ -604,6 +606,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 'bold',
+    fontFamily: Fonts.families.body,
   },
   newBadge: {
     position: 'absolute',
@@ -618,6 +621,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 'bold',
+    fontFamily: Fonts.families.body,
   },
   productInfo: {
     padding: 20,
@@ -630,6 +634,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 8,
+    fontFamily: Fonts.families.body,
   },
   productName: {
     fontSize: 28,
@@ -637,6 +642,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     lineHeight: 34,
     marginBottom: 12,
+    fontFamily: Fonts.families.heading,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -648,10 +654,12 @@ const styles = StyleSheet.create({
     color: '#FFA502',
     fontWeight: '600',
     marginRight: 8,
+    fontFamily: Fonts.families.body,
   },
   reviews: {
     fontSize: 14,
     color: '#888888',
+    fontFamily: Fonts.families.body,
   },
   priceContainer: {
     flexDirection: 'row',
@@ -663,12 +671,14 @@ const styles = StyleSheet.create({
     color: '#333333',
     fontWeight: 'bold',
     marginRight: 12,
+    fontFamily: Fonts.families.heading,
   },
   originalPrice: {
     fontSize: 20,
     color: '#CCCCCC',
     textDecorationLine: 'line-through',
     marginRight: 12,
+    fontFamily: Fonts.families.body,
   },
   discountBadge: {
     backgroundColor: '#FF4757',
@@ -680,6 +690,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 'bold',
+    fontFamily: Fonts.families.body,
   },
   selectorContainer: {
     paddingHorizontal: 20,
@@ -691,6 +702,7 @@ const styles = StyleSheet.create({
     color: '#333333',
     fontWeight: '600',
     marginBottom: 12,
+    fontFamily: Fonts.families.heading,
   },
   sizeContainer: {
     flexDirection: 'row',
@@ -715,9 +727,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333333',
     fontWeight: '600',
+    fontFamily: Fonts.families.body,
   },
   selectedSizeText: {
     color: '#FFFFFF',
+    fontFamily: Fonts.families.body,
   },
   colorContainer: {
     flexDirection: 'row',
@@ -740,9 +754,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333333',
     fontWeight: '600',
+    fontFamily: Fonts.families.body,
   },
   selectedColorText: {
     color: '#FFFFFF',
+    fontFamily: Fonts.families.body,
   },
   quantityContainer: {
     flexDirection: 'row',
@@ -762,6 +778,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: Colors.textLight,
     fontWeight: 'bold',
+    fontFamily: Fonts.families.body,
   },
   quantityText: {
     fontSize: 18,
@@ -770,6 +787,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     minWidth: 30,
     textAlign: 'center',
+    fontFamily: Fonts.families.body,
   },
   descriptionContainer: {
     paddingHorizontal: 20,
@@ -781,11 +799,13 @@ const styles = StyleSheet.create({
     color: '#333333',
     fontWeight: '600',
     marginBottom: 12,
+    fontFamily: Fonts.families.heading,
   },
   descriptionText: {
     fontSize: 16,
     color: '#666666',
     lineHeight: 24,
+    fontFamily: Fonts.families.body,
   },
   pointsList: {
     marginTop: 8,
@@ -800,12 +820,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     marginRight: 8,
+    fontFamily: Fonts.families.body,
   },
   pointText: {
     color: '#666666',
     fontSize: 14,
     lineHeight: 20,
     flex: 1,
+    fontFamily: Fonts.families.body,
   },
   // Color swatches
   swatchWrapper: {
@@ -872,6 +894,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
+    fontFamily: Fonts.families.body,
   },
   buyNowText: {
     color: '#FFFFFF',
@@ -879,6 +902,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
+    fontFamily: Fonts.families.body,
   },
   bottomSpacing: {
     height: 20,

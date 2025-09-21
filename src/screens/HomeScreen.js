@@ -426,6 +426,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
               sizes: sizesArr,
               description: p.description ?? '',
               points: pointsArr,
+              availableQuantity: Number(p.availableQuantity ?? 0),
             };
           });
           setApiFeaturedOnSale(mapped);
@@ -538,6 +539,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
               sizes: sizesArr,
               description: p.description ?? '',
               points: pointsArr,
+              availableQuantity: Number(p.availableQuantity ?? 0),
             };
           });
           setApiNewArrivals(mapped);
@@ -631,7 +633,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
         >
           <Image source={Naz_Logo} style={styles.logoImage} resizeMode="contain" />
           <View style={styles.brandTextContainer}>
-            <Text style={styles.brandName}>Naz's Collection</Text>
+            <Text style={styles.brandName}>N&N Naz's Collection</Text>
             <Text style={styles.brandTagline}>WOMEN'S FASHION</Text>
           </View>
         </Animated.View>
@@ -926,11 +928,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   brandName: {
-    fontSize: Fonts.sizes.large,
+    fontSize: Fonts.sizes.xl,
     fontWeight: Fonts.weights.bold,
     color: Colors.textLuxury,
     letterSpacing: 0.8,
-    fontFamily: 'serif',
+    fontFamily: Fonts.families.heading,
   },
   brandTagline: {
     fontSize: Fonts.sizes.small,
@@ -939,6 +941,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     marginTop: 3,
     opacity: 0.8,
+    fontFamily: Fonts.families.body,
   },
   logoCircle: {
     width: 50,
@@ -1129,6 +1132,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
     lineHeight: 38,
+    fontFamily: Fonts.families.heading,
   },
   bannerSubtitle: {
     fontSize: 16,
@@ -1141,6 +1145,7 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+    fontFamily: Fonts.families.body,
   },
   section: {
     marginVertical: 20,
@@ -1157,6 +1162,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
     letterSpacing: 0.3,
+    fontFamily: Fonts.families.heading,
   },
   sectionAction: {
     fontSize: Fonts.sizes.medium,

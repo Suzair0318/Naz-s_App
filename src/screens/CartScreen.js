@@ -257,11 +257,13 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 6,
     letterSpacing: -0.5,
+    fontFamily: Fonts.families.heading,
   },
   headerSubtitle: {
     fontSize: Fonts.sizes.md,
     color: Colors.textSecondary,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   listContainer: {
     padding: 20,
@@ -315,6 +317,7 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     fontWeight: 'bold',
     lineHeight: 14,
+    fontFamily: Fonts.families.body,
   },
   itemDetails: {
     flex: 1,
@@ -334,6 +337,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
     lineHeight: Fonts.lineHeights.tight * Fonts.sizes.md,
+    fontFamily: Fonts.families.body,
   },
   itemPrice: {
     fontSize: Fonts.sizes.md,
@@ -341,6 +345,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     letterSpacing: -0.1,
     flexShrink: 0,
+    fontFamily: Fonts.families.body,
   },
   variantContainer: {
     flexDirection: 'row',
@@ -361,6 +366,7 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.xs,
     color: Colors.textSecondary,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -397,6 +403,7 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     fontWeight: Fonts.weights.bold,
     lineHeight: Fonts.sizes.sm,
+    fontFamily: Fonts.families.body,
   },
   quantityText: {
     fontSize: Fonts.sizes.sm,
@@ -405,6 +412,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     minWidth: 18,
     textAlign: 'center',
+    fontFamily: Fonts.families.body,
   },
   itemTotal: {
     fontSize: Fonts.sizes.md,
@@ -414,6 +422,7 @@ const styles = StyleSheet.create({
     flex: 0,
     textAlign: 'right',
     marginLeft: 8,
+    fontFamily: Fonts.families.body,
   },
   summaryContainer: {
     backgroundColor: Colors.surfaceElevated,
@@ -434,6 +443,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 16,
     letterSpacing: -0.2,
+    fontFamily: Fonts.families.heading,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -445,11 +455,13 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.sm,
     color: Colors.textSecondary,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   summaryValue: {
     fontSize: Fonts.sizes.sm,
     color: Colors.textPrimary,
     fontWeight: Fonts.weights.semiBold,
+    fontFamily: Fonts.families.body,
   },
   totalRow: {
     borderTopWidth: 2,
@@ -467,12 +479,14 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     fontWeight: Fonts.weights.bold,
     letterSpacing: -0.2,
+    fontFamily: Fonts.families.body,
   },
   totalValue: {
     fontSize: Fonts.sizes.md,
     color: Colors.textPrimary,
     fontWeight: Fonts.weights.extraBold,
     letterSpacing: -0.2,
+    fontFamily: Fonts.families.body,
   },
   checkoutContainer: {
     marginTop: 20,
@@ -516,12 +530,14 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     marginBottom: 2,
     letterSpacing: 0.3,
+    fontFamily: Fonts.families.body,
   },
   checkoutSubText: {
     fontSize: Fonts.sizes.xs,
     color: 'rgba(255,255,255,0.8)',
     fontWeight: Fonts.weights.medium,
     letterSpacing: 0.2,
+    fontFamily: Fonts.families.body,
   },
   checkoutPriceContainer: {
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -536,6 +552,7 @@ const styles = StyleSheet.create({
     fontWeight: Fonts.weights.extraBold,
     color: Colors.textLight,
     letterSpacing: -0.2,
+    fontFamily: Fonts.families.body,
   },
   emptyCart: {
     flex: 1,
@@ -553,6 +570,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 8,
     textAlign: 'center',
+    fontFamily: Fonts.families.heading,
   },
   emptyCartText: {
     fontSize: Fonts.sizes.md,
@@ -560,6 +578,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: Fonts.lineHeights.relaxed * Fonts.sizes.md,
+    fontFamily: Fonts.families.body,
   },
   continueShoppingButton: {
     paddingHorizontal: 32,
@@ -590,12 +609,14 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     letterSpacing: 0.3,
     textAlign: 'center',
+    fontFamily: Fonts.families.body,
   },
   premiumButtonSubtext: {
     fontSize: Fonts.sizes.xs,
     color: 'rgba(255,255,255,0.8)',
     fontWeight: Fonts.weights.medium,
     letterSpacing: 0.3,
+    fontFamily: Fonts.families.body,
   },
 });
 

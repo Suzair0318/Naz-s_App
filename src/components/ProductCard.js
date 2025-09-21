@@ -15,6 +15,10 @@ const ProductCard = ({ product, onPress, onToggleWishlist }) => {
   const wishlistScaleAnim = useRef(new Animated.Value(1)).current;
   const { token } = useAuthStore();
 
+  // Determine stock availability from product data
+  const availableQty = Number(product?.availableQuantity ?? product?.quantity ?? product?.stock ?? 0);
+  const isOutOfStock = isNaN(availableQty) || availableQty <= 0;
+
   const CACHE_KEY = 'wishlist:v1';
 
   const readGuestWishlist = async () => {
@@ -187,6 +191,10 @@ const ProductCard = ({ product, onPress, onToggleWishlist }) => {
   );
 
   const handleCardPress = () => {
+    // Do not navigate if out of stock
+    if (isOutOfStock) {
+      return;
+    }
     // Card press animation - bounce like wishlist
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -205,48 +213,56 @@ const ProductCard = ({ product, onPress, onToggleWishlist }) => {
         useNativeDriver: true,
       }),
     ]).start();
-
     if (onPress) {
       setTimeout(() => onPress(), 50);
     }
   };
 
   return (
-    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
+    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}> 
       <TouchableOpacity 
         style={styles.container} 
-        onPress={handleCardPress} 
+        onPress={handleCardPress}
+        disabled={isOutOfStock}
         activeOpacity={0.95}
       >
-      <View style={styles.imageContainer}>
-        <Image source={{ uri: product.image }} style={styles.image} />
-        {renderBadges()}
-        <View style={styles.buttonRow}>
-          <Animated.View style={[{ transform: [{ scale: wishlistScaleAnim }] }]}>
-            <TouchableOpacity 
-              style={[
-                styles.actionButton, 
-                styles.wishlistButton,
-                isWishlisted && styles.wishlistButtonActive
-              ]}
-              onPress={handleWishlistToggle}
-              activeOpacity={0.8}
-            >
-              <Ionicons 
-                name={isWishlisted ? "heart" : "heart-outline"} 
-                size={16} 
-                color={isWishlisted ? "#FFFFFF" : Colors.primary}
-              />
-            </TouchableOpacity>
-          </Animated.View>
+        <View style={styles.imageContainer}>
+          <Image 
+            source={{ uri: Array.isArray(product?.image) ? (product.image[0] || '') : (product?.image || '') }} 
+            style={styles.image} 
+          />
+          {isOutOfStock && (
+            <View style={styles.outOfStockOverlay}>
+              <Text style={styles.outOfStockText}>OUT OF STOCK</Text>
+            </View>
+          )}
+          {renderBadges()}
+          <View style={styles.buttonRow}>
+            <Animated.View style={[{ transform: [{ scale: wishlistScaleAnim }] }]}> 
+              <TouchableOpacity 
+                style={[
+                  styles.actionButton, 
+                  styles.wishlistButton,
+                  isWishlisted && styles.wishlistButtonActive
+                ]}
+                onPress={handleWishlistToggle}
+                activeOpacity={0.8}
+              >
+                <Ionicons 
+                  name={isWishlisted ? "heart" : "heart-outline"} 
+                  size={16} 
+                  color={isWishlisted ? "#FFFFFF" : Colors.primary}
+                />
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
         </View>
-      </View>
-      
-      <View style={styles.contentContainer}>
-        <Text style={styles.category}>{product.category}</Text>
-        <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
-        {renderPriceSection()}
-      </View>
+        
+        <View style={styles.contentContainer}>
+          <Text style={styles.category}>{product.category}</Text>
+          <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
+          {renderPriceSection()}
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -332,6 +348,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
+    fontFamily: Fonts.families.body,
   },
   wishlistButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
@@ -363,6 +380,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     marginBottom: 6,
     opacity: 0.8,
+    fontFamily: Fonts.families.body,
   },
   name: {
     fontSize: 14,
@@ -370,6 +388,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 5,
     lineHeight: 18,
+    fontFamily: Fonts.families.body,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -381,10 +400,12 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '500',
     marginRight: 4,
+    fontFamily: Fonts.families.body,
   },
   reviews: {
     fontSize: 9,
     color: Colors.textLight,
+    fontFamily: Fonts.families.body,
   },
   priceContainer: {
     // marginTop: 6,
@@ -402,6 +423,7 @@ const styles = StyleSheet.create({
     color: '#2C2C2C',
     fontWeight: '700',
     letterSpacing: 0.2,
+    fontFamily: Fonts.families.body,
   },
   originalPrice: {
     fontSize: 12,
@@ -409,6 +431,29 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
     fontWeight: '500',
     opacity: 0.8,
+    fontFamily: Fonts.families.body,
+  },
+  outOfStockOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  outOfStockText: {
+    backgroundColor: '#D32F2F',
+    color: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    fontFamily: Fonts.families.body,
   },
 });
 

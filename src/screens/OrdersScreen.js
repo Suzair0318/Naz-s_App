@@ -185,6 +185,7 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.lg,
     fontWeight: Fonts.weights.bold,
     color: Colors.textPrimary,
+    fontFamily: Fonts.families.heading,
   },
   content: {
     padding: 16,
@@ -212,6 +213,7 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.md,
     fontWeight: Fonts.weights.semiBold,
     color: Colors.textPrimary,
+    fontFamily: Fonts.families.body,
   },
   statusPill: {
     borderWidth: 1,
@@ -223,6 +225,7 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.xs,
     fontWeight: Fonts.weights.semiBold,
     color: Colors.textPrimary,
+    fontFamily: Fonts.families.body,
   },
   metaRow: {
     flexDirection: 'row',
@@ -233,6 +236,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: Fonts.sizes.sm,
     color: Colors.textSecondary,
+    fontFamily: Fonts.families.body,
   },
   itemsContainer: {
     marginTop: 6,
@@ -255,21 +259,25 @@ const styles = StyleSheet.create({
     fontSize: Fonts.sizes.sm,
     color: Colors.textPrimary,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   itemVariant: {
     marginTop: 2,
     fontSize: Fonts.sizes.xs,
     color: Colors.textSecondary,
+    fontFamily: Fonts.families.body,
   },
   itemQty: {
     marginTop: 2,
     fontSize: Fonts.sizes.xs,
     color: Colors.textSecondary,
+    fontFamily: Fonts.families.body,
   },
   itemPrice: {
     fontSize: Fonts.sizes.sm,
     color: Colors.textPrimary,
     fontWeight: Fonts.weights.semiBold,
+    fontFamily: Fonts.families.body,
   },
   totalsRow: {
     marginTop: 12,
@@ -289,21 +297,25 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: Fonts.sizes.sm,
     color: Colors.textSecondary,
+    fontFamily: Fonts.families.body,
   },
   totalValue: {
     fontSize: Fonts.sizes.sm,
     color: Colors.textPrimary,
     fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   totalLabelStrong: {
     fontSize: Fonts.sizes.md,
     color: Colors.textPrimary,
     fontWeight: Fonts.weights.bold,
+    fontFamily: Fonts.families.body,
   },
   totalValueStrong: {
     fontSize: Fonts.sizes.md,
     color: Colors.textPrimary,
     fontWeight: Fonts.weights.bold,
+    fontFamily: Fonts.families.body,
   },
 });
 

@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
   text: {
     fontWeight: Fonts.weights.semiBold,
     textAlign: 'center',
+    fontFamily: Fonts.families.body,
   },
   smallText: {
     fontSize: Fonts.sizes.small,

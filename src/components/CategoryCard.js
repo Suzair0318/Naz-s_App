@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+    fontFamily: Fonts.families.heading,
   },
   divider: {
     width: 30,
@@ -121,6 +122,7 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.6)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+    fontFamily: Fonts.families.body,
   },
   premiumBorder: {
     position: 'absolute',

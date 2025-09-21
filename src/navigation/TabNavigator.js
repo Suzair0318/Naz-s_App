@@ -309,6 +309,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.5,
     // Removed text shadow for cleaner look
+    fontFamily: Fonts.families.body,
   },
   
   // Active Indicator Dot
@@ -353,6 +354,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     letterSpacing: 0.3,
     textTransform: 'capitalize',
+    fontFamily: Fonts.families.body,
   },
   
   // Premium Tab Item

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { Colors } from '../constants/Colors';
+import { Fonts } from '../constants/Fonts';
 
 const { width } = Dimensions.get('window');
 
@@ -205,6 +206,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
     letterSpacing: 0.5,
+    fontFamily: Fonts.families.body,
   },
   brandText: {
     fontSize: 14,
@@ -213,6 +215,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     opacity: 0.8,
+    fontFamily: Fonts.families.heading,
   },
 });
 

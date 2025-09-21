@@ -162,6 +162,7 @@ const ProductsScreen = ({ navigation, route, onScroll }) => {
           sizes: sizesArr,
           description: p.description ?? '',
           points: pointsArr,
+          availableQuantity: Number(p.availableQuantity ?? 0),
         };
       });
 
@@ -206,6 +207,7 @@ const ProductsScreen = ({ navigation, route, onScroll }) => {
     category: p.category,
     colors: Array.isArray(p.colors) ? [...p.colors] : [],
     sizes: Array.isArray(p.sizes) ? [...p.sizes] : [],
+    availableQuantity: typeof p.availableQuantity === 'number' ? p.availableQuantity : Number(p.availableQuantity ?? 0),
   });
 
   // Get unique categories from loaded products
