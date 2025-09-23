@@ -4,8 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import useAuthStore from '../store/authStore';
-
-const API_BASE = 'http://192.168.18.11:3006';
+import { ENDPOINTS } from '../utils/endpoint';
 
 const OrdersScreen = ({ navigation }) => {
   const [orders, setOrders] = useState([]);
@@ -19,7 +18,7 @@ const OrdersScreen = ({ navigation }) => {
           setOrders([]);
           return;
         }
-        const resp = await fetch(`${API_BASE}/orders`, {
+        const resp = await fetch(`${ENDPOINTS.live}/orders`, {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}` },
         });

@@ -19,10 +19,9 @@ import { Fonts } from '../constants/Fonts';
 // Data inlined for clarity on what the Home screen maps
 import ProductCard from '../components/ProductCard';
 import CategoryCard from '../components/CategoryCard';
-import CustomButton from '../components/CustomButton';
 import Naz_Logo from '../assets/images/naz_logo.jpeg'
-import NewCollectionImg from '../assets/images/new_colelction.jpg';
 import useAuthStore from '../store/authStore';
+import { ENDPOINTS } from '../utils/endpoint';
 
 const { width } = Dimensions.get('window');
 
@@ -286,7 +285,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
         return;
       }
       try {
-        const resp = await fetch(`${API_BASE}/wishlist`, {
+        const resp = await fetch(`${ENDPOINTS.live}/wishlist`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!resp.ok) return;
@@ -374,7 +373,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
     const fetchFeaturedOnSale = async () => {
       try {
         setFeaturedLoading(true);
-        const url = `${API_BASE}/admin/products/on-sale`;
+        const url = `${ENDPOINTS.live}/admin/products/on-sale`;
         const resp = await fetch(url);
         const data = await resp.json();
         if (Array.isArray(data)) {
@@ -433,32 +432,12 @@ const HomeScreen = ({ navigation, onScroll }) => {
     fetchFeaturedOnSale();
   }, []);
 
-  // API base for physical device testing (user provided LAN IP)
-  // If you switch back to emulator, consider 10.0.2.2 for Android emulator.
-  const API_BASE = 'http://192.168.18.11:3006';
-
-  // Normalize image URLs coming from backend (localhost, 127.0.0.1, relative)
-  const normalizeImageUrl = (url) => {
-    if (!url || typeof url !== 'string') return url;
-    // If URL is absolute and points to localhost/127, rewrite to API_BASE
-    if (url.startsWith('http://localhost:3006')) return url.replace('http://localhost:3006', API_BASE);
-    if (url.startsWith('https://localhost:3006')) return url.replace('https://localhost:3006', API_BASE);
-    if (url.startsWith('http://127.0.0.1:3006')) return url.replace('http://127.0.0.1:3006', API_BASE);
-    if (url.startsWith('https://127.0.0.1:3006')) return url.replace('https://127.0.0.1:3006', API_BASE);
-    // If already absolute http(s) to some other host, return as-is
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    // If relative path, prefix with API_BASE
-    if (url.startsWith('/')) return `${API_BASE}${url}`;
-    // Fallback: treat as relative without leading slash
-    return `${API_BASE}/${url.replace(/^\/+/, '')}`;
-  };
-
   // Fetch categories from backend and map to UI shape
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setCategoriesLoading(true);
-        const url = `${API_BASE}/admin/products/categories`;
+        const url = `${ENDPOINTS.live}/admin/products/categories`;
         const resp = await fetch(url);
         const data = await resp.json();
         if (Array.isArray(data)) {
@@ -487,7 +466,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
     const fetchNewArrivals = async () => {
       try {
         setNewArrivalsLoading(true);
-        const url = `${API_BASE}/admin/products/new-arrivals`;
+        const url = `${ENDPOINTS.live}/admin/products/new-arrivals`;
         const resp = await fetch(url);
         const data = await resp.json();
         console.log( "New Arrivals",data);

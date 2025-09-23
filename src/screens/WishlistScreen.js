@@ -8,9 +8,8 @@ import { wishlistListResponse } from '../data/sample';
 import useAuthStore from '../store/authStore';
 import storage from '../utils/storage';
 import { useIsFocused } from '@react-navigation/native';
+import { ENDPOINTS } from '../utils/endpoint';
 
-// Align with other screens
-const API_BASE = 'http://192.168.18.11:3006';
 const CACHE_KEY = 'wishlist:v1';
 
 const WishlistScreen = ({ navigation }) => {
@@ -84,7 +83,7 @@ const WishlistScreen = ({ navigation }) => {
       return;
     }
     try {
-      const resp = await fetch(`${API_BASE}/wishlist/${pid}`, {
+      const resp = await fetch(`${ENDPOINTS.live}/wishlist/${pid}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

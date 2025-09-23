@@ -16,20 +16,7 @@ import useCartStore from '../store/cartStore';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import LoadingSpinner from '../components/LoadingSpinner';
-
-// API base (match other screens)
-const API_BASE = 'http://192.168.18.11:3006';
-
-// Normalize image URLs coming from backend
-const normalizeImageUrl = (url) => {
-  if (!url || typeof url !== 'string') return url;
-  if (url.startsWith('http://localhost:3006')) return url.replace('http://localhost:3006', API_BASE);
-  if (url.startsWith('https://localhost:3006')) return url.replace('https://localhost:3006', API_BASE);
-  if (url.startsWith('http://127.0.0.1:3006')) return url.replace('http://127.0.0.1:3006', API_BASE);
-  if (url.startsWith('https://127.0.0.1:3006')) return url.replace('https://127.0.0.1:3006', API_BASE);
-  if (url.startsWith('/')) return `${API_BASE}${url}`;
-  return url;
-};
+import { ENDPOINTS } from '../utils/endpoint';
 
 const { width } = Dimensions.get('window');
 
@@ -101,7 +88,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
     const fetchDetail = async () => {
       try {
         setLoadingDetail(true);
-        const resp = await fetch(`${API_BASE}/admin/products/${id}`);
+        const resp = await fetch(`${ENDPOINTS.live}/admin/products/${id}`);
         const data = await resp.json();
         // data can be the product object; map it to UI shape
         const p = data?.item || data; // support either {item: {...}} or direct

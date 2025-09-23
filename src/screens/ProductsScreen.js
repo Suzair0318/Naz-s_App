@@ -15,27 +15,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
 import { Colors } from '../constants/Colors';
-import { Fonts } from '../constants/Fonts';
 import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTabBarVisibility } from '../navigation/TabBarVisibilityContext';
+import { ENDPOINTS } from '../utils/endpoint';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 50) / 2; // Better spacing for 2 cards
-
-// API base for device testing (match HomeScreen)
-const API_BASE = 'http://192.168.18.11:3006';
-
-// Normalize image URLs from backend (localhost -> device-accessible base)
-const normalizeImageUrl = (url) => {
-  if (!url || typeof url !== 'string') return url;
-  if (url.startsWith('http://localhost:3006')) return url.replace('http://localhost:3006', API_BASE);
-  if (url.startsWith('https://localhost:3006')) return url.replace('https://localhost:3006', API_BASE);
-  if (url.startsWith('http://127.0.0.1:3006')) return url.replace('http://127.0.0.1:3006', API_BASE);
-  if (url.startsWith('https://127.0.0.1:3006')) return url.replace('https://127.0.0.1:3006', API_BASE);
-  if (url.startsWith('/')) return `${API_BASE}${url}`;
-  return url;
-};
 
 // Small animated spinner component for footer
 const FooterSpinner = () => {
@@ -116,7 +102,7 @@ const ProductsScreen = ({ navigation, route, onScroll }) => {
       if (selectedFilter && selectedFilter !== 'All') params.set('category', selectedFilter);
       if (appliedSearch && appliedSearch.trim().length > 0) params.set('q', appliedSearch.trim());
       if (!reset && nextCursor) params.set('lastId', nextCursor);
-      const url = `${API_BASE}/admin/products?${params.toString()}`;
+      const url = `${ENDPOINTS.live}/admin/products?${params.toString()}`;
       const resp = await fetch(url);
       const json = await resp.json();
       const items = Array.isArray(json?.items) ? json.items : [];

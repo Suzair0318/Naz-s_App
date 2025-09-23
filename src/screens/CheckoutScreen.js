@@ -8,15 +8,16 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import useCartStore from '../store/cartStore';
-import CustomButton from '../components/CustomButton';
 import PremiumAlert from '../components/PremiumAlert';
 import useAuthStore from '../store/authStore';
 import storage from '../utils/storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { ENDPOINTS } from '../utils/endpoint';
+
 // Notifications removed per user request
 
 const CHECKOUT_ADDRESS_KEY = '@checkout_address';
-const API_BASE = 'http://192.168.18.11:3006';
+
 
 const CheckoutScreen = ({ route, navigation }) => {
   const { buyNowItem, items: navItems, totals: navTotals, openLocationOnMount } = route?.params || {};
@@ -317,7 +318,7 @@ const CheckoutScreen = ({ route, navigation }) => {
         return;
       }
 
-      const resp = await fetch(`${API_BASE}/orders`, {
+      const resp = await fetch(`${ENDPOINTS.live}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

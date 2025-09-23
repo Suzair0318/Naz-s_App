@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import storage from '../utils/storage';
+import { ENDPOINTS } from '../utils/endpoint';
 
-// Keep base aligned with screens
-const API_BASE = 'http://192.168.18.11:3006';
 const TOKEN_KEY = '@auth_token';
 const USER_KEY = '@auth_user';
 
@@ -46,7 +45,7 @@ const useAuthStore = create((set, get) => ({
   signIn: async ({ email, password }) => {
     set({ status: 'loading' });
     try {
-      const resp = await fetch(`${API_BASE}/auth/login`, {
+      const resp = await fetch(`${ENDPOINTS.live}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -78,7 +77,7 @@ const useAuthStore = create((set, get) => ({
   signUp: async ({ name, email, password }) => {
     set({ status: 'loading' });
     try {
-      const resp = await fetch(`${API_BASE}/auth/signup`, {
+      const resp = await fetch(`${ENDPOINTS.live}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
@@ -104,7 +103,7 @@ const useAuthStore = create((set, get) => ({
   // Forgot password: request OTP to email
   requestPasswordReset: async ({ email }) => {
     try {
-      const resp = await fetch(`${API_BASE}/auth/forgot-password`, {
+      const resp = await fetch(`${ENDPOINTS.live}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -122,7 +121,7 @@ const useAuthStore = create((set, get) => ({
   // Verify OTP sent to email
   verifyOtp: async ({ email, otp }) => {
     try {
-      const resp = await fetch(`${API_BASE}/auth/verify-otp`, {
+      const resp = await fetch(`${ENDPOINTS.live}/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp }),
@@ -140,7 +139,7 @@ const useAuthStore = create((set, get) => ({
   // Reset password using verified OTP
   resetPassword: async ({ email, otp, newPassword }) => {
     try {
-      const resp = await fetch(`${API_BASE}/auth/reset-password`, {
+      const resp = await fetch(`${ENDPOINTS.live}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, password: newPassword }),

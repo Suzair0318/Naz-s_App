@@ -5,9 +5,7 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import useAuthStore from '../store/authStore';
 import storage from '../utils/storage';
-
-// Keep base aligned with other screens
-const API_BASE = 'http://192.168.18.11:3006';
+import { ENDPOINTS } from '../utils/endpoint';
 
 const ProductCard = ({ product, onPress, onToggleWishlist }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -72,7 +70,7 @@ const ProductCard = ({ product, onPress, onToggleWishlist }) => {
       return true;
     }
     try {
-      const resp = await fetch(`${API_BASE}/wishlist/add`, {
+      const resp = await fetch(`${ENDPOINTS.live}/wishlist/add`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +93,7 @@ const ProductCard = ({ product, onPress, onToggleWishlist }) => {
       return true;
     }
     try {
-      const resp = await fetch(`${API_BASE}/wishlist/${pid}`, {
+      const resp = await fetch(`${ENDPOINTS.live}/wishlist/${pid}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

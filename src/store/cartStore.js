@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import useAuthStore from './authStore';
 import storage from '../utils/storage';
+import { ENDPOINTS } from '../utils/endpoint';
 
-// Keep base aligned with other screens
-const API_BASE = 'http://192.168.18.11:3006';
 const CART_STORAGE_KEY = '@cart_items';
 
 // Cart items are keyed by a composite cartId so variants (size/color) of the same
@@ -103,7 +102,7 @@ const useCartStore = create((set, get) => ({
     try {
       const token = useAuthStore.getState().token;
       if (!token) return [];
-      const resp = await fetch(`${API_BASE}/cart`, {
+      const resp = await fetch(`${ENDPOINTS.live}/cart`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -158,7 +157,7 @@ const useCartStore = create((set, get) => ({
         quantity: Number(i.quantity || 1),
         size: i.size || undefined,
       }));
-      const resp = await fetch(`${API_BASE}/cart`, {
+      const resp = await fetch(`${ENDPOINTS.live}/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -195,7 +194,7 @@ const useCartStore = create((set, get) => ({
     try {
       const token = useAuthStore.getState().token;
       if (!token) return null;
-      const resp = await fetch(`${API_BASE}/cart/${productId}`, {
+      const resp = await fetch(`${ENDPOINTS.live}/cart/${productId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -219,7 +218,7 @@ const useCartStore = create((set, get) => ({
     try {
       const token = useAuthStore.getState().token;
       if (!token) return null;
-      const resp = await fetch(`${API_BASE}/cart/${productId}`, {
+      const resp = await fetch(`${ENDPOINTS.live}/cart/${productId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
