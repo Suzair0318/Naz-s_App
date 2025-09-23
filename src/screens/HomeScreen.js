@@ -21,6 +21,7 @@ import ProductCard from '../components/ProductCard';
 import CategoryCard from '../components/CategoryCard';
 import CustomButton from '../components/CustomButton';
 import Naz_Logo from '../assets/images/naz_logo.jpeg'
+import NewCollectionImg from '../assets/images/new_colelction.jpg';
 import useAuthStore from '../store/authStore';
 
 const { width } = Dimensions.get('window');
@@ -197,34 +198,24 @@ export const newArrivals = [
   },
 ];
 
-export const bannerData = [
+
+// Special offers data
+export const specialOffers = [
   {
-    id: '1',
-    title: 'New Collection',
-    subtitle: 'Discover elegance in every piece',
-    image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=400&fit=crop',
-    buttonText: 'Shop Now',
+    id: 'o1',
+    title: 'Limited Time Sale',
+    description: 'Up to 50% off selected items',
+    discount: '50%',
+    validUntil: '2024-12-31',
+    color: '#FF6B6B',
   },
   {
-    id: '2',
-    title: 'Sale Up to 50%',
-    subtitle: 'Limited time offer',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=400&fit=crop',
-    buttonText: 'View Sale',
-  },
-  {
-    id: '3',
-    title: 'Premium Dresses',
-    subtitle: 'Luxury meets comfort',
-    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=400&fit=crop',
-    buttonText: 'Explore',
-  },
-  {
-    id: '4',
-    title: 'Winter Collection',
-    subtitle: 'Stay warm in style',
-    image: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=400&fit=crop',
-    buttonText: 'Shop Winter',
+    id: 'o2',
+    title: 'New Customer Offer',
+    description: '20% off your first purchase',
+    discount: '20%',
+    validUntil: '2024-12-31',
+    color: '#4ECDC4',
   },
 ];
 
@@ -641,104 +632,94 @@ const HomeScreen = ({ navigation, onScroll }) => {
     </Animated.View>
   );
 
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-  const bannerScrollRef = useRef(null);
-
-  // Auto-scroll banner carousel
+  // Hero section animations
+  const heroFadeAnim = useRef(new Animated.Value(0)).current;
+  const heroSlideAnim = useRef(new Animated.Value(30)).current;
+  
+  // Hero section entrance animation
   useEffect(() => {
-    const bannerInterval = setInterval(() => {
-      setCurrentBannerIndex(prevIndex => {
-        const nextIndex = (prevIndex + 1) % bannerData.length;
-        if (bannerScrollRef.current) {
-          bannerScrollRef.current.scrollToIndex({
-            index: nextIndex,
-            animated: true,
-          });
-        }
-        return nextIndex;
-      });
-    }, 4000); // Change every 4 seconds
-
-    return () => clearInterval(bannerInterval);
+    Animated.parallel([
+      Animated.timing(heroFadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(heroSlideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
-  const renderBannerItem = ({ item }) => (
-    <View style={styles.bannerContainer}>
-      <View style={styles.bannerImageContainer}>
-        <Image
-          source={{ uri: item.image }}
-          style={styles.bannerImage}
-        />
-        <LinearGradient
-          colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)']}
-          style={styles.bannerGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        />
+  // Hero section with brand showcase
+  const renderHeroSection = () => (
+    <Animated.View 
+      style={[
+        styles.heroSection,
+        {
+          opacity: heroFadeAnim,
+          transform: [{ translateY: heroSlideAnim }],
+        }
+      ]}
+    >
+      <LinearGradient
+        colors={['#F8F9FA', '#E9ECEF', '#DEE2E6']}
+        style={styles.heroGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.heroContent}>
+          <Text style={styles.heroTitle}>Naz's Collection</Text>
+          <Text style={styles.heroSubtitle}>Where Elegance Meets Style</Text>
+          <View style={styles.heroStats}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>500+</Text>
+              <Text style={styles.statLabel}>Premium Items</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>10K+</Text>
+              <Text style={styles.statLabel}>Happy Customers</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>5★</Text>
+              <Text style={styles.statLabel}>Rated Experience</Text>
+            </View>
+          </View>
+        </View>
+      </LinearGradient>
+    </Animated.View>
+  );
+
+  // Special offers section
+  const renderSpecialOffers = () => (
+    <View style={styles.offersSection}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Special Offers</Text>
       </View>
-      <View style={styles.bannerContent}>
-        <View style={styles.bannerTextContainer}>
-          <Text style={styles.bannerTitle}>{item.title}</Text>
-          <View style={styles.bannerDivider} />
-          <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
-        </View>
-        <View style={styles.bannerButtonContainer}>
-          <Animated.View style={[{ transform: [{ scale: premiumButtonScale }] }]}>
-            <TouchableOpacity
-              style={styles.premiumButton}
-              activeOpacity={0.9}
-              onPress={handlePremiumButtonPress}
-            >
-              <LinearGradient
-                colors={['#C0C0C0', '#A8A8A8', '#909090']}
-                style={styles.buttonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Text style={styles.premiumButtonText}>{item.buttonText}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
+      <View style={styles.offersContainer}>
+        {specialOffers.map((offer) => (
+          <TouchableOpacity 
+            key={offer.id}
+            style={[styles.offerCard, { backgroundColor: offer.color }]}
+            onPress={() => navigation.navigate('Products')}
+          >
+            <View style={styles.offerContent}>
+              <Text style={styles.offerDiscount}>{offer.discount}</Text>
+              <Text style={styles.offerTitle}>{offer.title}</Text>
+              <Text style={styles.offerDescription}>{offer.description}</Text>
+            </View>
+            <View style={styles.offerArrow}>
+              <Feather name="arrow-right" size={20} color="white" />
+            </View>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );
 
-  const renderBanner = () => {
-    return (
-      <View style={styles.bannerWrapper}>
-        <FlatList
-          ref={bannerScrollRef}
-          data={bannerData}
-          renderItem={renderBannerItem}
-          keyExtractor={(item) => item.id}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(event) => {
-            const index = Math.round(event.nativeEvent.contentOffset.x / width);
-            setCurrentBannerIndex(index);
-          }}
-          getItemLayout={(data, index) => ({
-            length: width,
-            offset: width * index,
-            index,
-          })}
-        />
-        <View style={styles.bannerPagination}>
-          {bannerData.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.paginationDot,
-                index === currentBannerIndex && styles.paginationDotActive,
-              ]}
-            />
-          ))}
-        </View>
-      </View>
-    );
-  };
 
   const renderSectionHeader = (title, actionText) => (
     <View style={styles.sectionHeader}>
@@ -875,9 +856,10 @@ const HomeScreen = ({ navigation, onScroll }) => {
     <SafeAreaView style={styles.container}>
       {renderHeader()}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {renderBanner()}
+        {renderHeroSection()}
         {renderCategories()}
         {renderNewArrivals()}
+        {renderSpecialOffers()}
         {renderFeaturedProducts()}
         {typeof renderWishlistSection === 'function' ? renderWishlistSection() : null}
         <View style={styles.bottomSpacing} />
@@ -1043,110 +1025,6 @@ const styles = StyleSheet.create({
     flex: 1,
     letterSpacing: 0.3,
   },
-  bannerWrapper: {
-    marginBottom: 32,
-  },
-  bannerContainer: {
-    width: width,
-    paddingHorizontal: 20,
-    position: 'relative',
-    marginTop: 20
-  },
-  bannerImageContainer: {
-    height: 240,
-    borderRadius: 20,
-    overflow: 'hidden',
-    elevation: 8,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-  },
-  bannerImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  bannerGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  bannerContent: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'space-between',
-    padding: 32,
-  },
-  bannerTextContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bannerDivider: {
-    width: 60,
-    height: 2,
-    backgroundColor: '#C0C0C0',
-    marginVertical: 12,
-    opacity: 0.8,
-  },
-  bannerButtonContainer: {
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  premiumButton: {
-    borderRadius: 25,
-    elevation: 4,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-  },
-  buttonGradient: {
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  premiumButtonText: {
-    color: '#000000',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  bannerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    textShadowColor: 'rgba(0, 0, 0, 0.7)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-    lineHeight: 38,
-    fontFamily: Fonts.families.heading,
-  },
-  bannerSubtitle: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    opacity: 0.9,
-    letterSpacing: 0.8,
-    fontWeight: '300',
-    fontStyle: 'italic',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-    fontFamily: Fonts.families.body,
-  },
   section: {
     marginVertical: 20,
   },
@@ -1271,6 +1149,121 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 100,
+  },
+  // Hero section styles
+  heroSection: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 24,
+    borderRadius: 20,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+  },
+  heroGradient: {
+    padding: 32,
+    minHeight: 160,
+    justifyContent: 'center',
+  },
+  heroContent: {
+    alignItems: 'center',
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#2D3748',
+    textAlign: 'center',
+    marginBottom: 8,
+    letterSpacing: 1,
+    fontFamily: Fonts.families.heading,
+  },
+  heroSubtitle: {
+    fontSize: 16,
+    color: '#4A5568',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontStyle: 'italic',
+    fontFamily: Fonts.families.body,
+  },
+  heroStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#2D3748',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#718096',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#CBD5E0',
+    marginHorizontal: 16,
+  },
+  // Special offers styles
+  offersSection: {
+    marginBottom: 24,
+  },
+  offersContainer: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  offerCard: {
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    elevation: 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    marginBottom: 8,
+  },
+  offerContent: {
+    flex: 1,
+  },
+  offerDiscount: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: 'white',
+    marginBottom: 4,
+  },
+  offerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+    marginBottom: 4,
+  },
+  offerDescription: {
+    fontSize: 12,
+    color: 'white',
+    opacity: 0.9,
+  },
+  offerArrow: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

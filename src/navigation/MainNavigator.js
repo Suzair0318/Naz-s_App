@@ -46,7 +46,7 @@ const MainNavigator = () => {
           name="ProductDetail" 
           component={ProductDetailScreen}
           options={{
-            gestureEnabled: true,
+            gestureEnabled: false,
           }}
         />
         <Stack.Screen 

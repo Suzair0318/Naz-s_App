@@ -128,17 +128,24 @@ const PremiumTabIcon = ({ focused, iconName, color, size, cartCount, routeName }
         )}
       </Animated.View>
       
-      {/* Active indicator dot */}
+      {/* Premium active indicator line */}
       {focused && (
         <Animated.View 
           style={[
-            styles.activeDot,
+            styles.activeLine,
             {
               opacity: bounceValue,
-              transform: [{ scale: bounceValue }],
+              transform: [{ scaleX: bounceValue }],
             }
           ]}
-        />
+        >
+          <LinearGradient
+            colors={[Colors.primary, `${Colors.primary}CC`, Colors.primary]}
+            style={styles.lineGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          />
+        </Animated.View>
       )}
     </View>
   );
@@ -235,32 +242,33 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 50,
-    height: 50,
+    width: 55,
+    height: 55,
+    paddingBottom: 8,
   },
   
   // Active Background Glow
   activeBackground: {
     position: 'absolute',
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    top: -5,
-    left: 2.5,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    top: -8,
+    left: 3.5,
   },
   
   gradientBackground: {
     flex: 1,
-    borderRadius: 22.5,
+    borderRadius: 24,
   },
   
   // Icon Wrapper
   iconWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: 'transparent',
   },
   
@@ -312,15 +320,24 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.families.body,
   },
   
-  // Active Indicator Dot
-  activeDot: {
+  // Premium Active Indicator Line
+  activeLine: {
     position: 'absolute',
-    bottom: -12,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.primary,
-    // Removed shadows for cleaner minimal look
+    bottom: -15,
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+    overflow: 'hidden',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  
+  lineGradient: {
+    flex: 1,
+    borderRadius: 2,
   },
   
   // Premium Tab Bar
@@ -329,40 +346,40 @@ const styles = StyleSheet.create({
     bottom: Platform.OS === 'ios' ? 34 : 20,
     left: 20,
     right: 20,
-    borderRadius: 28,
+    borderRadius: 30,
     backgroundColor: '#FFFFFF',
     borderWidth: 0,
     shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 15,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    height: 80,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+    elevation: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    height: 85,
     // Glass morphism effect
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.8)',
+    borderTopColor: 'rgba(255,255,255,0.9)',
     // Backdrop blur simulation
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: 'rgba(255,255,255,0.97)',
   },
   
   // Premium Tab Label
   premiumTabLabel: {
-    fontSize: Fonts.sizes.xs,
+    fontSize: 11,
     fontWeight: Fonts.weights.semiBold,
-    marginTop: 2,
-    letterSpacing: 0.3,
+    marginTop: 4,
+    letterSpacing: 0.4,
     textTransform: 'capitalize',
     fontFamily: Fonts.families.body,
   },
   
   // Premium Tab Item
   premiumTabItem: {
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    borderRadius: 20,
-    marginHorizontal: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 22,
+    marginHorizontal: 3,
   },
   
   // Legacy styles (keeping for compatibility)

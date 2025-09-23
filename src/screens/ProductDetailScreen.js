@@ -455,33 +455,6 @@ const ProductDetailScreen = ({ route, navigation }) => {
           <Text style={styles.addToBagText}>Add to Cart</Text>
         </LinearGradient>
       </BounceTouchable>
-      <BounceTouchable
-        style={styles.buyNowButton}
-        onPress={() => {
-          if (!product) return;
-          const buyItem = {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            image: product.image,
-            size: selectedSize,
-            color: selectedColor,
-            quantity: Math.max(1, Math.min(Number(quantity || 1), Number(product?.availableQuantity ?? Infinity))),
-            availableQuantity: Number(product.availableQuantity ?? Infinity),
-            weight: Number(product.weight ?? 0),
-          };
-          navigation.navigate('Checkout', { buyNowItem: buyItem });
-        }}
-      >
-        <LinearGradient
-          colors={['#000000', '#333333']}
-          style={styles.buttonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <Text style={styles.buyNowText}>Buy Now</Text>
-        </LinearGradient>
-      </BounceTouchable>
     </View>
   );
 
@@ -870,19 +843,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#333333',
   },
-  buyNowButton: {
-    flex: 1,
-    marginLeft: 8,
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    borderWidth: 2,
-    borderColor: '#333333',
-  },
   buttonGradient: {
     paddingVertical: 16,
     alignItems: 'center',
@@ -890,14 +850,6 @@ const styles = StyleSheet.create({
   },
   addToBagText: {
     color: '#333333',
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-    fontFamily: Fonts.families.body,
-  },
-  buyNowText: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.3,
