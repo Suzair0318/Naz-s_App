@@ -19,6 +19,7 @@ import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTabBarVisibility } from '../navigation/TabBarVisibilityContext';
 import { ENDPOINTS } from '../utils/endpoint';
+import { normalizeImageUrl } from '../utils/image';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 50) / 2; // Better spacing for 2 cards

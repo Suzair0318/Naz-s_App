@@ -17,6 +17,7 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { ENDPOINTS } from '../utils/endpoint';
+import { normalizeImageUrl } from '../utils/image';
 
 const { width } = Dimensions.get('window');
 

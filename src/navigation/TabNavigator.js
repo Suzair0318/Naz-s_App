@@ -39,44 +39,43 @@ const AnimatedTabBar = (props) => {
   );
 };
 
-// Premium animated tab icon component
+// Clean Premium animated tab icon component
 const PremiumTabIcon = ({ focused, iconName, color, size, cartCount, routeName }) => {
-  const [scaleValue] = useState(new Animated.Value(focused ? 1.2 : 1));
-  const [bounceValue] = useState(new Animated.Value(focused ? 1 : 0));
+  const [scaleValue] = useState(new Animated.Value(focused ? 1.1 : 1));
+  const [fadeValue] = useState(new Animated.Value(focused ? 1 : 0));
 
   useEffect(() => {
-    // Scale animation for focus
+    // Simple scale animation
     Animated.spring(scaleValue, {
-      toValue: focused ? 1.2 : 1,
+      toValue: focused ? 1.1 : 1,
       useNativeDriver: true,
       tension: 150,
       friction: 8,
     }).start();
 
-    // Bounce animation for active state
-    Animated.spring(bounceValue, {
+    // Fade animation for background
+    Animated.timing(fadeValue, {
       toValue: focused ? 1 : 0,
+      duration: 200,
       useNativeDriver: true,
-      tension: 200,
-      friction: 10,
     }).start();
   }, [focused]);
 
   return (
     <View style={styles.premiumTabContainer}>
-      {/* Clean active background */}
+      {/* Clean Active Background */}
       {focused && (
         <Animated.View 
           style={[
             styles.activeBackground,
             {
-              transform: [{ scale: bounceValue }],
-              opacity: bounceValue,
+              opacity: fadeValue,
+              transform: [{ scale: fadeValue }],
             }
           ]}
         >
           <LinearGradient
-            colors={[`${Colors.primary}12`, `${Colors.primary}18`, `${Colors.primary}12`]}
+            colors={[`${Colors.primary}15`, `${Colors.primary}25`, `${Colors.primary}15`]}
             style={styles.gradientBackground}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -84,11 +83,10 @@ const PremiumTabIcon = ({ focused, iconName, color, size, cartCount, routeName }
         </Animated.View>
       )}
       
-      {/* Icon container with scale animation */}
+      {/* Icon container */}
       <Animated.View 
         style={[
           styles.iconWrapper,
-          focused && styles.iconWrapperActive,
           {
             transform: [{ scale: scaleValue }],
           }
@@ -96,26 +94,15 @@ const PremiumTabIcon = ({ focused, iconName, color, size, cartCount, routeName }
       >
         <Ionicons 
           name={iconName} 
-          size={focused ? size + 2 : size} 
+          size={size} 
           color={focused ? Colors.primary : color}
-          style={[
-            styles.tabIcon,
-            focused && styles.tabIconActive
-          ]}
         />
         
-        {/* Premium cart badge */}
+        {/* Clean cart badge */}
         {routeName === 'Cart' && cartCount > 0 && (
-          <Animated.View 
-            style={[
-              styles.premiumBadge,
-              {
-                transform: [{ scale: scaleValue }],
-              }
-            ]}
-          >
+          <View style={styles.premiumBadge}>
             <LinearGradient
-              colors={['#FF6B35', '#FF8E53', '#FF6B35']}
+              colors={['#FF6B35', '#FF8E53']}
               style={styles.badgeGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -124,27 +111,22 @@ const PremiumTabIcon = ({ focused, iconName, color, size, cartCount, routeName }
                 {cartCount > 99 ? '99+' : cartCount}
               </Text>
             </LinearGradient>
-          </Animated.View>
+          </View>
         )}
       </Animated.View>
       
-      {/* Premium active indicator line */}
+      {/* Clean Active Indicator */}
       {focused && (
         <Animated.View 
           style={[
             styles.activeLine,
             {
-              opacity: bounceValue,
-              transform: [{ scaleX: bounceValue }],
+              opacity: fadeValue,
+              transform: [{ scaleX: fadeValue }],
             }
           ]}
         >
-          <LinearGradient
-            colors={[Colors.primary, `${Colors.primary}CC`, Colors.primary]}
-            style={styles.lineGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          />
+          <View style={[styles.lineGradient, { backgroundColor: Colors.primary }]} />
         </Animated.View>
       )}
     </View>
@@ -237,44 +219,39 @@ const TabNavigator = () => {
 };
 
 const styles = StyleSheet.create({
-  // Premium Tab Container
+  // Clean Premium Tab Container
   premiumTabContainer: {
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 55,
-    height: 55,
-    paddingBottom: 8,
+    width: 50,
+    height: 60,
+    paddingBottom: 4,
   },
   
-  // Active Background Glow
+  // Clean Active Background
   activeBackground: {
     position: 'absolute',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    top: -8,
-    left: 3.5,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    top: 5,
+    left: 5,
   },
   
   gradientBackground: {
     flex: 1,
-    borderRadius: 24,
+    borderRadius: 20,
   },
   
-  // Icon Wrapper
+  // Clean Icon Wrapper
   iconWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: 'transparent',
-  },
-  
-  iconWrapperActive: {
-    backgroundColor: `${Colors.primary}08`,
-    // Removed shadows for cleaner look
   },
   
   // Tab Icon
@@ -286,53 +263,46 @@ const styles = StyleSheet.create({
     // Clean active state without shadows
   },
   
-  // Premium Badge
+  // Clean Premium Badge
   premiumBadge: {
     position: 'absolute',
     top: -6,
     right: -6,
-    borderRadius: 12,
-    minWidth: 22,
-    height: 22,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
     shadowColor: '#FF6B35',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   
   badgeGradient: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 6,
-    borderWidth: 2,
+    paddingHorizontal: 5,
+    borderWidth: 1.5,
     borderColor: '#FFFFFF',
   },
   
   premiumBadgeText: {
     color: '#FFFFFF',
     fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    // Removed text shadow for cleaner look
+    fontWeight: '700',
     fontFamily: Fonts.families.body,
   },
   
-  // Premium Active Indicator Line
+  // Clean Active Indicator Line
   activeLine: {
     position: 'absolute',
-    bottom: -15,
-    width: 32,
+    bottom: -12,
+    width: 24,
     height: 3,
     borderRadius: 2,
     overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
   },
   
   lineGradient: {
@@ -340,28 +310,26 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   
-  // Premium Tab Bar
+  // Clean Premium Tab Bar
   premiumTabBar: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 34 : 20,
-    left: 20,
-    right: 20,
-    borderRadius: 30,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     backgroundColor: '#FFFFFF',
     borderWidth: 0,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    elevation: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    height: 85,
-    // Glass morphism effect
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    height: 80,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.9)',
-    // Backdrop blur simulation
-    backgroundColor: 'rgba(255,255,255,0.97)',
+    borderTopColor: 'rgba(0,0,0,0.1)',
   },
   
   // Premium Tab Label

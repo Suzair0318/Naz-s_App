@@ -10,6 +10,7 @@ import {
   Dimensions,
   Animated,
   Platform,
+  Linking,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
@@ -19,9 +20,13 @@ import { Fonts } from '../constants/Fonts';
 // Data inlined for clarity on what the Home screen maps
 import ProductCard from '../components/ProductCard';
 import CategoryCard from '../components/CategoryCard';
+import  banner_1  from  '../assets/images/banner_1.jpeg'
+import  banner_2  from  '../assets/images/banner_2.jpeg'
+import  banner_3  from  '../assets/images/banner_3.jpeg'
 import Naz_Logo from '../assets/images/naz_logo.jpeg'
 import useAuthStore from '../store/authStore';
 import { ENDPOINTS } from '../utils/endpoint';
+import { normalizeImageUrl } from '../utils/image';
 
 const { width } = Dimensions.get('window');
 
@@ -36,7 +41,7 @@ export const categories = [
   {
     id: '2',
     name: 'Tops & Blouses',
-    image: 'https://images.unsplash.com/photo-1564257577-2d3b8c3b7e5b?w=300&h=300&fit=crop',
+    image: banner_1,
     itemCount: 32,
   },
   {
@@ -58,6 +63,8 @@ export const categories = [
     itemCount: 24,
   },
 ];
+
+
 
 export const featuredProducts = [
   {
@@ -218,6 +225,37 @@ export const specialOffers = [
   },
 ];
 
+// Premium banner carousel data
+export const premiumBanners = [
+  {
+    id: 'b1',
+    title: 'New Collection',
+    subtitle: 'Elegant Evening Wear',
+    description: 'Discover our latest premium collection',
+    image: banner_1,
+    gradient: ['#1a1a1a', '#2d2d2d'],
+    textColor: '#FFFFFF',
+  },
+  {
+    id: 'b2',
+    title: 'Premium Quality',
+    subtitle: 'Luxury Fabrics',
+    description: 'Crafted with the finest materials',
+    image: banner_2,
+    gradient: ['#8B4513', '#A0522D'],
+    textColor: '#FFFFFF',
+  },
+  {
+    id: 'b3',
+    title: 'Exclusive Designs',
+    subtitle: 'Limited Edition',
+    description: 'Unique pieces for the modern woman',
+    image: banner_3,
+    gradient: ['#2C3E50', '#34495E'],
+    textColor: '#FFFFFF',
+  },
+];
+
 const HomeScreen = ({ navigation, onScroll }) => {
   // Ensure we only pass serializable params through navigation
   const serializeProduct = (p) => ({
@@ -253,6 +291,10 @@ const HomeScreen = ({ navigation, onScroll }) => {
   const [wishlistIds, setWishlistIds] = useState([]);
   const [wishlistProducts, setWishlistProducts] = useState([]);
   const { token } = useAuthStore();
+  
+  // Banner carousel state
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const bannerCarouselRef = useRef(null);
 
   useEffect(() => {
     // Header entrance animation
@@ -273,6 +315,24 @@ const HomeScreen = ({ navigation, onScroll }) => {
         useNativeDriver: true,
       }),
     ]).start();
+  }, []);
+
+  // Auto-scroll banner carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % premiumBanners.length;
+        if (bannerCarouselRef.current) {
+          bannerCarouselRef.current.scrollToIndex({
+            index: nextIndex,
+            animated: true,
+          });
+        }
+        return nextIndex;
+      });
+    }, 4000); // Change banner every 4 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
   // Fetch wishlist for authenticated users
@@ -649,28 +709,106 @@ const HomeScreen = ({ navigation, onScroll }) => {
         end={{ x: 1, y: 1 }}
       >
         <View style={styles.heroContent}>
-          <Text style={styles.heroTitle}>Naz's Collection</Text>
+          <Text 
+            style={styles.heroTitle}
+            numberOfLines={1}
+            adjustsFontSizeToFit={true}
+          >
+            N&N Naz's Collection
+          </Text>
           <Text style={styles.heroSubtitle}>Where Elegance Meets Style</Text>
           <View style={styles.heroStats}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>500+</Text>
-              <Text style={styles.statLabel}>Premium Items</Text>
+              <Text style={styles.statNumber}>17K+</Text>
+              <Text style={styles.statLabel}>Facebook Followers</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>10K+</Text>
-              <Text style={styles.statLabel}>Happy Customers</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>5★</Text>
-              <Text style={styles.statLabel}>Rated Experience</Text>
+              <Text style={styles.statNumber}>4.7★</Text>
+              <Text style={styles.statLabel}>Facebook Rating</Text>
             </View>
           </View>
+          
+          {/* Facebook Page CTA */}
+          <TouchableOpacity 
+            style={styles.facebookCTA}
+            onPress={() => {
+              Linking.openURL('https://www.facebook.com/haniyacakesandhomedecors');
+            }}
+            activeOpacity={0.8}
+          >
+            <Feather name="facebook" size={18} color="#1877F2" />
+            <Text style={styles.facebookCTAText}>Follow us on Facebook</Text>
+            <Feather name="external-link" size={14} color="#666" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
     </Animated.View>
   );
+
+  // Premium banner carousel section
+  const renderPremiumBannerCarousel = () => {
+    const renderBannerItem = ({ item, index }) => (
+      <TouchableOpacity 
+        style={styles.bannerSlide}
+        onPress={() => navigation.navigate('Products')}
+        activeOpacity={0.9}
+      >
+        <Image source={item.image} style={styles.bannerImage} resizeMode="cover" />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.05)', 'transparent']}
+          style={styles.bannerOverlay}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+        {/* Glass Morphism Shop Now Button */}
+        <View style={styles.glassMorphismButton}>
+          <Text style={styles.glassMorphismButtonText}>Shop Now</Text>
+        </View>
+      </TouchableOpacity>
+    );
+
+    return (
+      <View style={styles.bannerSection}>
+        <FlatList
+          ref={bannerCarouselRef}
+          data={premiumBanners}
+          renderItem={renderBannerItem}
+          keyExtractor={(item) => item.id}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          scrollEnabled={true}
+          onMomentumScrollEnd={(event) => {
+            const index = Math.round(event.nativeEvent.contentOffset.x / (width - 32));
+            setCurrentBannerIndex(index);
+          }}
+          getItemLayout={(data, index) => ({
+            length: width - 32,
+            offset: (width - 32) * index,
+            index,
+          })}
+        />
+        
+        {/* Banner indicators */}
+        <View style={styles.bannerIndicators}>
+          {premiumBanners.map((_, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.bannerIndicator,
+                index === currentBannerIndex && styles.activeBannerIndicator
+              ]}
+              onPress={() => {
+                bannerCarouselRef.current?.scrollToIndex({ index, animated: true });
+                setCurrentBannerIndex(index);
+              }}
+            />
+          ))}
+        </View>
+      </View>
+    );
+  };
 
   // Special offers section
   const renderSpecialOffers = () => (
@@ -835,11 +973,12 @@ const HomeScreen = ({ navigation, onScroll }) => {
     <SafeAreaView style={styles.container}>
       {renderHeader()}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {renderHeroSection()}
+        {renderPremiumBannerCarousel()}
         {renderCategories()}
         {renderNewArrivals()}
         {renderSpecialOffers()}
         {renderFeaturedProducts()}
+        {renderHeroSection()}
         {typeof renderWishlistSection === 'function' ? renderWishlistSection() : null}
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -1151,12 +1290,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '800',
     color: '#2D3748',
     textAlign: 'center',
     marginBottom: 8,
-    letterSpacing: 1,
+    letterSpacing: 0.5,
     fontFamily: Fonts.families.heading,
   },
   heroSubtitle: {
@@ -1194,6 +1333,32 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: '#CBD5E0',
     marginHorizontal: 16,
+  },
+  // Facebook CTA styles
+  facebookCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginTop: 20,
+    marginHorizontal: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(24, 119, 242, 0.2)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  facebookCTAText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1877F2',
+    marginHorizontal: 8,
+    fontFamily: Fonts.families.body,
   },
   // Special offers styles
   offersSection: {
@@ -1237,12 +1402,151 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   offerArrow: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
+  },
+  // Premium banner carousel styles
+  bannerSection: {
+    height: 220,
+    marginTop: 20,
+    marginBottom: 24,
+    marginHorizontal: 16,
+    position: 'relative',
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+  },
+  bannerSlide: {
+    width: width - 32,
+    height: 220,
+    position: 'relative',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  bannerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  bannerContent: {
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    flex: 1,
+    paddingBottom: 24,
+    paddingRight: 24,
+  },
+  bannerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    fontFamily: Fonts.families.heading,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  bannerSubtitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    fontFamily: Fonts.families.body,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  bannerDescription: {
+    fontSize: 14,
+    marginBottom: 16,
+    fontFamily: Fonts.families.body,
+    opacity: 0.9,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  bannerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.9)',
+    elevation: 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  bannerButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    marginRight: 8,
+    fontFamily: Fonts.families.body,
+    letterSpacing: 0.5,
+  },
+  bannerIndicators: {
+    position: 'absolute',
+    bottom: 16,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bannerIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    marginHorizontal: 4,
+  },
+  activeBannerIndicator: {
+    backgroundColor: '#FFFFFF',
+    width: 24,
+  },
+  // Glass Morphism Button Styles
+  glassMorphismButton: {
+    position: 'absolute',
+    bottom: 40,
+    left: '47%',
+    transform: [{ translateX: -50 }],
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: 'rgba(0, 0, 0, 0.1)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  glassMorphismButtonText: {
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 8,
+    fontFamily: Fonts.families.body,
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });
 
