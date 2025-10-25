@@ -18,6 +18,7 @@ import { Fonts } from '../constants/Fonts';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { ENDPOINTS } from '../utils/endpoint';
 import { normalizeImageUrl } from '../utils/image';
+import { faker } from '@faker-js/faker';
 
 const { width } = Dimensions.get('window');
 
@@ -29,12 +30,17 @@ const BounceTouchable = ({
   style,
   activeOpacity = 0.9,
   scaleTo = 1.08,
+  callOnPressFirst = false,
   ...rest
 }) => {
   const scale = useRef(new Animated.Value(1)).current;
 
   const handlePress = () => {
     if (disabled) return;
+    if (callOnPressFirst && typeof onPress === 'function') {
+      // Fire action immediately for snappy feel; keep animation as feedback
+      onPress();
+    }
     Animated.sequence([
       Animated.timing(scale, {
         toValue: scaleTo,
@@ -52,7 +58,9 @@ const BounceTouchable = ({
         useNativeDriver: true,
       }),
     ]).start(() => {
-      onPress && onPress();
+      if (!callOnPressFirst) {
+        onPress && onPress();
+      }
     });
   };
 
@@ -311,18 +319,20 @@ const ProductDetailScreen = ({ route, navigation }) => {
       </View>
     </View>
   );
+ 
 
   const renderSizeSelector = () => (
     <View style={styles.selectorContainer}>
       <Text style={[styles.selectorTitle, { fontSize: 14 }]}>Size</Text>
       <View style={styles.sizeContainer}>
         {product.sizes?.map((size) => (
-          <BounceTouchable
+          <TouchableOpacity
             key={size}
             style={[
               styles.sizeOption,
               selectedSize === size && styles.selectedSizeOption
             ]}
+            activeOpacity={0.8}
             onPress={() => setSelectedSize(size)}
           >
             <Text style={[
@@ -332,56 +342,34 @@ const ProductDetailScreen = ({ route, navigation }) => {
             ]}>
               {size}
             </Text>
-          </BounceTouchable>
+          </TouchableOpacity>
         ))}
       </View>
     </View>
   );
 
-  // const renderColorSelector = () => (
-  //   <View style={styles.selectorContainer}>
-  //     <Text style={[styles.selectorTitle, { fontSize: 14 }]}>Color</Text>
-  //     <View style={styles.colorContainer}>
-  //       {product.colors?.map((color) => (
-  //         <BounceTouchable
-  //           key={color}
-  //           style={styles.swatchWrapper}
-  //           onPress={() => setSelectedColor(color)}
-  //           accessibilityLabel={`Select color ${color}`}
-  //         >
-  //           <View
-  //             style={[
-  //               styles.colorSwatch,
-  //               { backgroundColor: getColorHex(color) },
-  //               selectedColor === color && styles.selectedColorSwatch,
-  //             ]}
-  //           />
-  //         </BounceTouchable>
-  //       ))}
-  //     </View>
-  //   </View>
-  // );
-
   const renderQuantitySelector = () => (
     <View style={styles.selectorContainer}>
       <Text style={styles.selectorTitle}>Quantity</Text>
       <View style={styles.quantityContainer}>
-        <BounceTouchable
+        <TouchableOpacity
           style={styles.quantityButton}
+          activeOpacity={0.8}
           onPress={() => setQuantity(Math.max(1, quantity - 1))}
         >
           <Text style={styles.quantityButtonText}>−</Text>
-        </BounceTouchable>
+        </TouchableOpacity>
         <Text style={styles.quantityText}>{quantity}</Text>
-        <BounceTouchable
+        <TouchableOpacity
           style={styles.quantityButton}
+          activeOpacity={0.8}
           onPress={() => {
             const maxAvail = Number(product?.availableQuantity ?? Infinity);
             setQuantity((prev) => Math.max(1, Math.min(prev + 1, maxAvail)));
           }}
         >
           <Text style={styles.quantityButtonText}>+</Text>
-        </BounceTouchable>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -410,6 +398,100 @@ const ProductDetailScreen = ({ route, navigation }) => {
             </View>
           ))}
         </View>
+      </View>
+    );
+  };
+
+  const renderReviewsSection = () => {
+    // Generate consistent mock data based on product ID
+    const productHash = product.id.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const baseRating = 4.2 + (Math.abs(productHash) % 8) / 10; // 4.2 - 5.0
+    const totalReviews = 15 + (Math.abs(productHash) % 25); // 15-40 reviews
+    
+    // Seed faker so each product shows consistent, but different, reviews
+    faker.seed(Math.abs(productHash));
+    const toAgo = (d) => {
+      const diffMs = Date.now() - d.getTime();
+      const days = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+      if (days === 0) return 'today';
+      if (days === 1) return '1 day ago';
+      if (days < 7) return `${days} days ago`;
+      const weeks = Math.floor(days / 7);
+      return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+    };
+    const reviewCount = 3;
+    const mockReviews = Array.from({ length: reviewCount }).map(() => {
+      const first = faker.person.firstName();
+      const last = faker.person.lastName();
+      const name = `${first} ${last.charAt(0)}.`;
+      const ratingBias = 4 + Math.round(faker.number.float({ min: 0, max: 1 })); // 4 or 5
+      const rating = Math.min(5, Math.max(4, ratingBias));
+      const text = faker.commerce.productDescription();
+      const recent = faker.date.recent({ days: 21 });
+      return {
+        name,
+        rating,
+        text,
+        date: toAgo(recent),
+        verified: true,
+      };
+    });
+
+    // Rating distribution (5-star breakdown)
+    const ratingDistribution = [
+      { stars: 5, count: Math.floor(totalReviews * 0.65) },
+      { stars: 4, count: Math.floor(totalReviews * 0.25) },
+      { stars: 3, count: Math.floor(totalReviews * 0.08) },
+      { stars: 2, count: Math.floor(totalReviews * 0.02) },
+      { stars: 1, count: 0 }
+    ];
+
+    const renderStars = (rating, size = 14) => {
+      const stars = [];
+      for (let i = 1; i <= 5; i++) {
+        stars.push(
+          <Text key={i} style={[styles.star, { fontSize: size, color: i <= rating ? '#FFD700' : '#E0E0E0' }]}>
+            ★
+          </Text>
+        );
+      }
+      return <View style={styles.starsContainer}>{stars}</View>;
+    };
+
+    const renderRatingBar = (stars, count, total) => (
+      <View key={stars} style={styles.ratingBarRow}>
+        <Text style={styles.ratingBarLabel}>{stars}★</Text>
+        <View style={styles.ratingBarContainer}>
+          <View style={[styles.ratingBarFill, { width: `${(count / total) * 100}%` }]} />
+        </View>
+        <Text style={styles.ratingBarCount}>{count}</Text>
+      </View>
+    );
+
+    return (
+      <View style={styles.reviewsContainer}>
+        <Text style={styles.reviewsTitle}>Customer Reviews</Text>
+        
+        {/* Overall Rating Summary */}
+        <View style={styles.ratingSummary}>
+          <View style={styles.ratingOverview}>
+            <Text style={styles.overallRating}>{baseRating.toFixed(1)}</Text>
+            {renderStars(Math.floor(baseRating), 18)}
+            <Text style={styles.totalReviews}>Based on {totalReviews} reviews</Text>
+          </View>
+          
+          {/* Rating Distribution */}
+          <View style={styles.ratingDistribution}>
+            {ratingDistribution.map(({ stars, count }) => 
+              renderRatingBar(stars, count, totalReviews)
+            )}
+          </View>
+        </View>
+
       </View>
     );
   };
@@ -456,6 +538,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
         {/* {renderColorSelector()} */}
         {renderQuantitySelector()}
         {renderDescription()}
+        {renderReviewsSection()}
         <View style={styles.bottomSpacing} />
       </ScrollView>
       {renderActionButtons()}
@@ -846,6 +929,165 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 20,
+  },
+  // Reviews Section Styles
+  reviewsContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    backgroundColor: '#FFFFFF',
+  },
+  reviewsTitle: {
+    fontSize: 18,
+    color: '#333333',
+    fontWeight: '600',
+    marginBottom: 16,
+    fontFamily: Fonts.families.heading,
+  },
+  ratingSummary: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  ratingOverview: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  overallRating: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 4,
+    fontFamily: Fonts.families.heading,
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  star: {
+    marginHorizontal: 1,
+  },
+  totalReviews: {
+    fontSize: 14,
+    color: '#666666',
+    fontFamily: Fonts.families.body,
+  },
+  ratingDistribution: {
+    marginTop: 8,
+  },
+  ratingBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  ratingBarLabel: {
+    fontSize: 12,
+    color: '#666666',
+    width: 25,
+    fontFamily: Fonts.families.body,
+  },
+  ratingBarContainer: {
+    flex: 1,
+    height: 6,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 3,
+    marginHorizontal: 8,
+  },
+  ratingBarFill: {
+    height: '100%',
+    backgroundColor: '#FFD700',
+    borderRadius: 3,
+  },
+  ratingBarCount: {
+    fontSize: 12,
+    color: '#666666',
+    width: 20,
+    textAlign: 'right',
+    fontFamily: Fonts.families.body,
+  },
+  trustBadges: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+    paddingVertical: 12,
+    backgroundColor: '#F0F8FF',
+    borderRadius: 8,
+  },
+  trustBadge: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  trustBadgeIcon: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  trustBadgeText: {
+    fontSize: 10,
+    color: '#666666',
+    textAlign: 'center',
+    fontFamily: Fonts.families.body,
+  },
+  reviewsList: {
+    marginBottom: 16,
+  },
+  reviewItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    paddingVertical: 16,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  reviewerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reviewerName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333333',
+    marginRight: 8,
+    fontFamily: Fonts.families.body,
+  },
+  verifiedBadge: {
+    backgroundColor: '#E8F5E8',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  verifiedText: {
+    fontSize: 10,
+    color: '#2E7D32',
+    fontWeight: '500',
+    fontFamily: Fonts.families.body,
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: '#999999',
+    fontFamily: Fonts.families.body,
+  },
+  reviewText: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 20,
+    marginTop: 8,
+    fontFamily: Fonts.families.body,
+  },
+  viewAllButton: {
+    borderWidth: 1,
+    borderColor: '#333333',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  viewAllText: {
+    fontSize: 14,
+    color: '#333333',
+    fontWeight: '600',
+    fontFamily: Fonts.families.body,
   },
 });
 

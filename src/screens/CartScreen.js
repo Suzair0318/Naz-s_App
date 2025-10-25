@@ -99,6 +99,14 @@ const CartScreen = ({ navigation, onScroll }) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Products')}
+        style={styles.headerBackButton}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="chevron-back" size={22} color={Colors.textPrimary} />
+        <Text style={styles.headerBackText}>Back</Text>
+      </TouchableOpacity>
       <Text style={styles.headerTitle}>Shopping Bag</Text>
       <Text style={styles.headerSubtitle}>{cartItems.length} items</Text>
     </View>
@@ -261,18 +269,34 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.surfaceElevated,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: Fonts.weights.bold,
     color: Colors.textPrimary,
-    marginBottom: 6,
+    marginBottom: 0,
     letterSpacing: -0.5,
     fontFamily: Fonts.families.heading,
   },
   headerSubtitle: {
     fontSize: Fonts.sizes.md,
     color: Colors.textSecondary,
+    fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
+  },
+  headerBackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingRight: 8,
+  },
+  headerBackText: {
+    marginLeft: 2,
+    color: Colors.textPrimary,
+    fontSize: Fonts.sizes.sm,
     fontWeight: Fonts.weights.medium,
     fontFamily: Fonts.families.body,
   },

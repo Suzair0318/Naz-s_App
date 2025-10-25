@@ -834,32 +834,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
     </View>
   );
 
-  // Special offers section
-  const renderSpecialOffers = () => (
-    <View style={styles.offersSection}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Special Offers</Text>
-      </View>
-      <View style={styles.offersContainer}>
-        {specialOffers.map((offer) => (
-          <TouchableOpacity 
-            key={offer.id}
-            style={[styles.offerCard, { backgroundColor: offer.color }]}
-            onPress={() => navigation.navigate('Products')}
-          >
-            <View style={styles.offerContent}>
-              <Text style={styles.offerDiscount}>{offer.discount}</Text>
-              <Text style={styles.offerTitle}>{offer.title}</Text>
-              <Text style={styles.offerDescription}>{offer.description}</Text>
-            </View>
-            <View style={styles.offerArrow}>
-              <Feather name="arrow-right" size={20} color="white" />
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
+ 
 
   const renderSectionHeader = (title, actionText) => (
     <View style={styles.sectionHeader}>
@@ -999,10 +974,9 @@ const HomeScreen = ({ navigation, onScroll }) => {
         {renderPremiumBannerCarousel()}
         {renderCategories()}
         {renderNewArrivals()}
-        {renderSpecialOffers()}
         {renderFeaturedProducts()}
-        {renderHeroSection()}
         {typeof renderWishlistSection === 'function' ? renderWishlistSection() : null}
+        {renderHeroSection()}
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>

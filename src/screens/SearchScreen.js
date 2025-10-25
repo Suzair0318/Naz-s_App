@@ -59,6 +59,16 @@ const SearchScreen = ({ navigation, route, onScroll }) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
+      <View style={styles.headerTopRow}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })}
+          style={styles.headerBackButton}
+          activeOpacity={0.8}
+        >
+          <Feather name="chevron-left" size={20} color={Colors.textPrimary} />
+          <Text style={styles.headerBackText}>Back</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.searchContainer}>
         <Feather name="search" size={18} color={Colors.textPrimary} style={styles.searchIcon} />
         <TextInput
@@ -178,6 +188,23 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  headerBackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingRight: 8,
+  },
+  headerBackText: {
+    marginLeft: 2,
+    color: Colors.textPrimary,
+    fontSize: Fonts.sizes.sm,
+    fontWeight: Fonts.weights.medium,
   },
   searchContainer: {
     flexDirection: 'row',

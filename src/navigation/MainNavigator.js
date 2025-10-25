@@ -68,7 +68,7 @@ const MainNavigator = () => {
           name="Checkout" 
           component={CheckoutScreen}
           options={{
-            gestureEnabled: true,
+            gestureEnabled: false,
           }}
         />
         <Stack.Screen
@@ -117,7 +117,7 @@ const MainNavigator = () => {
           name="Orders" 
           component={OrdersScreen}
           options={{
-            gestureEnabled: true,
+            gestureEnabled: false,
           }}
         />
         <Stack.Screen 
