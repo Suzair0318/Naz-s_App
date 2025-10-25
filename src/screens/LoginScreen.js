@@ -47,7 +47,8 @@ const LoginScreen = ({ navigation, route }) => {
         navigation.replace('MainTabs', { screen: 'Home' });
       }
     } catch (e) {
-      setError('Failed to sign in. Please try again.');
+      const msg = (e && e.message ? String(e.message) : '').trim();
+      setError(msg || 'Failed to sign in. Please try again.');
     }
   };
 

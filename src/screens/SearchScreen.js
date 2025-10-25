@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,9 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import { featuredProducts, newArrivals } from '../data/mockData';
 import ProductCard from '../components/ProductCard';
+import Feather from 'react-native-vector-icons/Feather';
 
-const SearchScreen = ({ navigation, onScroll }) => {
+const SearchScreen = ({ navigation, route, onScroll }) => {
   const serializeProduct = (p) => ({
     id: p.id,
     name: p.name,
@@ -31,6 +32,15 @@ const SearchScreen = ({ navigation, onScroll }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [recentSearches] = useState(['Dresses', 'Blouses', 'Elegant', 'Evening wear']);
+
+  // Categories passed from Products screen (fallback to unique categories from mock data)
+  const passedCategories = route?.params?.categories;
+  const categories = useMemo(() => {
+    if (Array.isArray(passedCategories) && passedCategories.length > 0) return passedCategories;
+    // fallback from mock data
+    const all = [...featuredProducts, ...newArrivals];
+    return ['All', ...new Set(all.map(p => p.category).filter(Boolean))];
+  }, [passedCategories]);
 
   const allProducts = [...featuredProducts, ...newArrivals];
 
@@ -50,18 +60,18 @@ const SearchScreen = ({ navigation, onScroll }) => {
   const renderHeader = () => (
     <View style={styles.header}>
       <View style={styles.searchContainer}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Feather name="search" size={18} color={Colors.textPrimary} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search for elegant clothing..."
-          placeholderTextColor={Colors.textLight}
+          placeholderTextColor={Colors.textPrimary}
           value={searchQuery}
           onChangeText={handleSearch}
           autoFocus
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => handleSearch('')}>
-            <Text style={styles.clearIcon}>✕</Text>
+            <Feather name="x" size={18} color={Colors.textPrimary} style={styles.clearIcon} />
           </TouchableOpacity>
         )}
       </View>
@@ -79,6 +89,28 @@ const SearchScreen = ({ navigation, onScroll }) => {
             onPress={() => handleSearch(search)}
           >
             <Text style={styles.tagText}>{search}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+
+  const renderCategorySuggestions = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Categories</Text>
+      <View style={styles.tagsContainer}>
+        {categories.map((cat) => (
+          <TouchableOpacity
+            key={cat}
+            style={styles.tag}
+            onPress={() => {
+              navigation.navigate('MainTabs', {
+                screen: 'Products',
+                params: { categoryName: cat },
+              });
+            }}
+          >
+            <Text style={styles.tagText}>{cat}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -127,7 +159,10 @@ const SearchScreen = ({ navigation, onScroll }) => {
       {searchQuery.trim() ? (
         filteredProducts.length > 0 ? renderSearchResults() : renderEmptyState()
       ) : (
-        renderRecentSearches()
+        <>
+          {renderCategorySuggestions()}
+          {renderRecentSearches()}
+        </>
       )}
     </SafeAreaView>
   );
@@ -147,26 +182,30 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.backgroundLight,
-    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: Colors.border,
+    height: 46,
+    elevation: 2,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
   },
   searchIcon: {
-    fontSize: 16,
-    marginRight: 12,
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
     fontSize: Fonts.sizes.md,
     color: Colors.textPrimary,
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
   clearIcon: {
-    fontSize: 16,
     color: Colors.textLight,
-    padding: 4,
+    padding: 6,
   },
   section: {
     padding: 20,

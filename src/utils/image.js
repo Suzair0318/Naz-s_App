@@ -16,6 +16,11 @@ export function normalizeImageUrl(input) {
     // Replace Windows backslashes with forward slashes
     url = url.replace(/\\+/g, '/');
 
+    // Force-upgrade absolute http URLs to https (temporary compatibility shim)
+    if (/^http:\/\//i.test(url)) {
+      url = url.replace(/^http:\/\//i, 'https://');
+    }
+
     // If already absolute http(s)
     if (/^https?:\/\//i.test(url)) return url;
 

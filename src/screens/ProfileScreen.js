@@ -24,6 +24,7 @@ const ProfileScreen = ({ navigation, onScroll }) => {
   const [showSupportModal, setShowSupportModal] = useState(false);
   const signOut = useAuthStore((s) => s.signOut);
   const user = useAuthStore((s) => s.user);
+  const isAuthenticated = !!user;
   const menuItems = [
     { id: '1', title: 'My Orders', icon: 'bag-outline', iconColor: '#4CAF50', screen: 'Orders' },
     { id: '6', title: 'Customer Support', icon: 'chatbubble-ellipses-outline', iconColor: '#FECA57', screen: 'Support' },
@@ -31,24 +32,35 @@ const ProfileScreen = ({ navigation, onScroll }) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <View style={styles.profileContainer}>
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatarGradient}>
-            <Text style={styles.avatarInitial}>
-              {(user?.name || 'User').charAt(0).toUpperCase()}
-            </Text>
+      {isAuthenticated ? (
+        <View style={styles.profileContainer}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatarGradient}>
+              <Text style={styles.avatarInitial}>
+                {(user?.name || 'User').charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.userName}>{user?.name || 'User'}</Text>
+            <Text style={styles.userEmail}>{user?.email || ''}</Text>
+            {/* <View style={styles.memberBadge}> */}
+              {/* <Ionicons name="diamond" size={14} color={Colors.primary} /> */}
+              {/* <Text style={styles.memberSince}>VIP Member since 2023</Text> */}
+            {/* </View> */}
           </View>
         </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.userName}>{user?.name || 'User'}</Text>
-          <Text style={styles.userEmail}>{user?.email || ''}</Text>
-          {/* <View style={styles.memberBadge}> */}
-            {/* <Ionicons name="diamond" size={14} color={Colors.primary} /> */}
-            {/* <Text style={styles.memberSince}>VIP Member since 2023</Text> */}
-          {/* </View> */}
+      ) : (
+        <View style={styles.profileContainer}>
+          <View style={[styles.avatarGradient, { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.surface }]}>
+            <Ionicons name="person-circle-outline" size={40} color={Colors.textSecondary} />
+          </View>
+          <View style={[styles.profileInfo, { marginLeft: 12 }] }>
+            <Text style={styles.userName}>Welcome</Text>
+            <Text style={styles.userEmail}>Sign in to view your profile</Text>
+          </View>
         </View>
-      </View>
-      
+      )}
     </View>
   );
 
@@ -115,10 +127,28 @@ const ProfileScreen = ({ navigation, onScroll }) => {
   };
 
   const renderLogoutButton = () => (
-    <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8} onPress={handleSignOutPress}>
-      <Ionicons name="log-out-outline" size={20} color={Colors.textLight} style={styles.logoutIcon} />
-      <Text style={styles.logoutText}>Sign Out</Text>
-    </TouchableOpacity>
+    isAuthenticated ? (
+      <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8} onPress={handleSignOutPress}>
+        <Ionicons name="log-out-outline" size={20} color={Colors.textLight} style={styles.logoutIcon} />
+        <Text style={styles.logoutText}>Sign Out</Text>
+      </TouchableOpacity>
+    ) : (
+      <TouchableOpacity
+        style={styles.loginButton}
+        activeOpacity={0.85}
+        onPress={() => {
+          try {
+            navigation.navigate('Login');
+          } catch (e) {
+            // fallback if route name differs in some stacks
+            navigation.navigate('Auth');
+          }
+        }}
+      >
+        <Ionicons name="log-in-outline" size={20} color={Colors.textLight} style={styles.logoutIcon} />
+        <Text style={styles.loginText}>Login</Text>
+      </TouchableOpacity>
+    )
   );
 
   return (
@@ -165,7 +195,7 @@ const ProfileScreen = ({ navigation, onScroll }) => {
                 <Ionicons name="call" size={20} color="#4CAF50" />
                 <View style={styles.contactDetails}>
                   <Text style={styles.contactLabel}>Call us directly</Text>
-                  <Text style={styles.contactValue}>+92 300 1234567</Text>
+                  <Text style={styles.contactValue}>+92 311 3193361</Text>
                 </View>
               </View>
 
@@ -411,6 +441,27 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   logoutText: {
+    fontSize: Fonts.sizes.md,
+    color: Colors.textLight,
+    fontWeight: Fonts.weights.bold,
+    letterSpacing: 0.2,
+  },
+  loginButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    marginTop: 24,
+    backgroundColor: Colors.primary,
+    paddingVertical: 18,
+    borderRadius: 16,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  loginText: {
     fontSize: Fonts.sizes.md,
     color: Colors.textLight,
     fontWeight: Fonts.weights.bold,

@@ -51,8 +51,25 @@ const useAuthStore = create((set, get) => ({
         body: JSON.stringify({ email, password }),
       });
       if (!resp.ok) {
-        const errText = await resp.text();
-        throw new Error(errText || 'Login failed');
+        // Prefer backend-provided message, with status-specific fallbacks
+        let message = '';
+        try {
+          const contentType = resp.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await resp.json();
+            message = data?.message || data?.error || '';
+          } else {
+            message = await resp.text();
+          }
+        } catch (_) {
+          // ignore parse errors; use fallbacks below
+        }
+        if (!message) {
+          if (resp.status === 400) message = 'email and password are required';
+          else if (resp.status === 401) message = 'Invalid email or password';
+          else if (resp.status === 500) message = 'Internal server error. Please try again later';
+        }
+        throw new Error(message || `Login failed (${resp.status})`);
       }
       const json = await resp.json();
       console.log("Login Response",json)
@@ -83,8 +100,26 @@ const useAuthStore = create((set, get) => ({
         body: JSON.stringify({ name, email, password }),
       });
       if (!resp.ok) {
-        const errText = await resp.text();
-        throw new Error(errText || 'Signup failed');
+        // Prefer backend-provided message, handle important statuses explicitly
+        let message = '';
+        try {
+          const contentType = resp.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await resp.json();
+            message = data?.message || data?.error || '';
+          } else {
+            message = await resp.text();
+          }
+        } catch (_) {
+          // ignore parse errors; we'll fallback below
+        }
+        // Friendly defaults by status
+        if (!message) {
+          if (resp.status === 409) message = 'Email already in use';
+          else if (resp.status === 400) message = 'Please provide name, email, and password';
+          else if (resp.status === 500) message = 'Internal server error. Please try again later';
+        }
+        throw new Error(message || `Signup failed (${resp.status})`);
       }
       const json = await resp.json();
       const token = json?.token;

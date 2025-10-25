@@ -62,6 +62,7 @@ const ProductsScreen = ({ navigation, route, onScroll }) => {
   const [appliedSearch, setAppliedSearch] = useState('');
   // Keep input focus stable; no need to track focus state
   const inputRef = useRef(null);
+  const navigatingToSearchRef = useRef(false);
   const { hideTabBar, showTabBar } = useTabBarVisibility();
   const lastYRef = useRef(0);
   const lastDirRef = useRef('up');
@@ -76,6 +77,12 @@ const ProductsScreen = ({ navigation, route, onScroll }) => {
   const [overlayLoading, setOverlayLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
+
+  // Keep selected category chip in view (horizontal scroll)
+  const filtersScrollRef = useRef(null);
+  const filtersScrollXRef = useRef(0);
+  const [filtersViewportWidth, setFiltersViewportWidth] = useState(0);
+  const chipLayoutsRef = useRef({});
 
   // Pre-select category when navigated with params
   useEffect(() => {
@@ -227,7 +234,14 @@ const ProductsScreen = ({ navigation, route, onScroll }) => {
           blurOnSubmit={false}
           onBlur={() => {
             // If focus is lost unexpectedly, re-focus to keep keyboard open
-            requestAnimationFrame(() => inputRef.current && inputRef.current.focus());
+            if (!navigatingToSearchRef.current) {
+              requestAnimationFrame(() => inputRef.current && inputRef.current.focus());
+            }
+          }}
+          onFocus={() => {
+            navigatingToSearchRef.current = true;
+            navigation.navigate('SearchMain', { categories });
+            setTimeout(() => { navigatingToSearchRef.current = false; }, 600);
           }}
           onSubmitEditing={() => {
             setAppliedSearch(searchInput);
@@ -250,8 +264,9 @@ const ProductsScreen = ({ navigation, route, onScroll }) => {
         <TouchableOpacity 
           style={styles.searchButton}
           onPress={() => {
-            setAppliedSearch(searchInput);
-            requestAnimationFrame(() => inputRef.current && inputRef.current.focus());
+            navigatingToSearchRef.current = true;
+            navigation.navigate('SearchMain', { categories });
+            setTimeout(() => { navigatingToSearchRef.current = false; }, 600);
           }}
           activeOpacity={0.8}
         >
@@ -262,14 +277,22 @@ const ProductsScreen = ({ navigation, route, onScroll }) => {
       </View>
     </View>
   );
-
+  
   const renderFilters = () => (
     <View style={styles.filtersContainer}>
       <Text style={styles.filtersTitle}>Categories</Text>
       <ScrollView 
+        ref={filtersScrollRef}
         horizontal 
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filtersScroll}
+        onLayout={(e) => {
+          setFiltersViewportWidth(e.nativeEvent.layout.width);
+        }}
+        onScroll={(e) => {
+          filtersScrollXRef.current = e.nativeEvent.contentOffset.x;
+        }}
+        scrollEventThrottle={16}
       >
         {categories.map((category) => (
           <TouchableOpacity
@@ -278,7 +301,20 @@ const ProductsScreen = ({ navigation, route, onScroll }) => {
               styles.filterChip,
               selectedFilter === category && styles.filterChipActive
             ]}
-            onPress={() => setSelectedFilter(category)}
+            onLayout={(e) => {
+              // Record each chip's x/width relative to the ScrollView content
+              chipLayoutsRef.current[category] = e.nativeEvent.layout;
+            }}
+            onPress={() => {
+              setSelectedFilter(category);
+              // Bring the slider back to the start so "All" and the selection are visible
+              requestAnimationFrame(() => {
+                const scrollView = filtersScrollRef.current;
+                if (scrollView) {
+                  scrollView.scrollTo({ x: 0, y: 0, animated: true });
+                }
+              });
+            }}
           >
             <Text style={[
               styles.filterText,

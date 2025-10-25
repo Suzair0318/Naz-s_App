@@ -216,6 +216,27 @@ const CheckoutScreen = ({ route, navigation }) => {
   const successScaleAnim = useRef(new Animated.Value(0)).current;
   const successOpacityAnim = useRef(new Animated.Value(0)).current;
   const confettiAnim = useRef(new Animated.Value(0)).current;
+  const allowBackRef = useRef(false);
+
+  // Intercept any back (gesture/hardware/stack) and redirect to Cart
+  useEffect(() => {
+    const unsub = navigation.addListener('beforeRemove', (e) => {
+      if (allowBackRef.current) {
+        allowBackRef.current = false;
+        return; // allow action triggered by our handler
+      }
+      // Block default behavior and redirect to Cart
+      e.preventDefault();
+      allowBackRef.current = true;
+      navigation.navigate('MainTabs', { screen: 'Cart' });
+    });
+    return unsub;
+  }, [navigation]);
+
+  const handleManualBack = () => {
+    allowBackRef.current = true;
+    navigation.navigate('MainTabs', { screen: 'Cart' });
+  };
 
   // Show location modal only when coming from Cart with intent and user is authenticated
   useEffect(() => {
@@ -459,6 +480,12 @@ const CheckoutScreen = ({ route, navigation }) => {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView ref={scrollViewRef} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.headerContainer}>
+            <TouchableOpacity onPress={handleManualBack} style={styles.headerBackButton} activeOpacity={0.7}>
+              <Ionicons name="chevron-back" size={24} color={Colors.textPrimary} />
+              <Text style={styles.headerBackText}>Back</Text>
+            </TouchableOpacity>
+          </View>
           {/* <Text style={styles.title}>Checkout</Text> */}
 
           <View style={styles.section}>
@@ -548,9 +575,6 @@ const CheckoutScreen = ({ route, navigation }) => {
             </View>
           </TouchableOpacity>
           {/* Notifications removed per user request */}
-          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 12, alignSelf: 'center' }}>
-            <Text style={{ color: Colors.accent, fontSize: Fonts.sizes.sm }}>Back</Text>
-          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -814,6 +838,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, 
     paddingVertical: 20,
     paddingBottom: 40 
+  },
+  headerContainer: {
+    paddingBottom: 8,
+  },
+  headerBackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  headerBackText: {
+    marginLeft: 2,
+    color: Colors.textPrimary,
+    fontSize: Fonts.sizes.sm,
+    fontWeight: Fonts.weights.medium,
+    fontFamily: Fonts.families.body,
   },
   title: { 
     fontSize: Fonts.sizes.xxxl, 

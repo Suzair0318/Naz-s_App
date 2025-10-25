@@ -168,15 +168,16 @@ const CartScreen = ({ navigation, onScroll }) => {
       <Text style={styles.emptyCartIcon}>🛍️</Text>
       <Text style={styles.emptyCartTitle}>Your bag is empty</Text>
       <Text style={styles.emptyCartText}>Add some beautiful pieces to get started</Text>
-      <TouchableOpacity
-        style={styles.premiumContinueButton}
-        onPress={() => navigation.navigate('Home')}
-        activeOpacity={0.8}
+      <BounceTouchable
+        style={styles.continueButton}
+        onPress={() => navigation.navigate('Products')}
+        activeOpacity={0.9}
       >
-        <View style={styles.buttonGradient}>
-          <Text style={styles.premiumButtonText} numberOfLines={1}>✨ Continue Shopping</Text>
+        <View style={styles.continueButtonContent}>
+          <Ionicons name="pricetags-outline" size={20} color={Colors.primary} />
+          <Text style={styles.continueButtonText}>Continue Shopping</Text>
         </View>
-      </TouchableOpacity>
+      </BounceTouchable>
     </View>
   );
 
@@ -203,6 +204,16 @@ const CartScreen = ({ navigation, onScroll }) => {
           <View style={styles.checkoutTextContainer}>
             <Text style={styles.checkoutMainText}>Checkout</Text>
           </View>
+        </View>
+      </BounceTouchable>
+      <BounceTouchable
+        style={styles.continueButton}
+        onPress={() => navigation.navigate('Products')}
+        activeOpacity={0.9}
+      >
+        <View style={styles.continueButtonContent}>
+          <Ionicons name="pricetags-outline" size={20} color={Colors.primary} />
+          <Text style={styles.continueButtonText}>Continue Shopping</Text>
         </View>
       </BounceTouchable>
     </View>
@@ -491,6 +502,31 @@ const styles = StyleSheet.create({
   checkoutContainer: {
     marginTop: 20,
     alignItems: 'center',
+  },
+  continueButton: {
+    marginTop: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surfaceElevated,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    minWidth: 200,
+  },
+  continueButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  continueButtonText: {
+    marginLeft: 8,
+    color: Colors.primary,
+    fontSize: Fonts.sizes.md,
+    fontWeight: Fonts.weights.semiBold,
+    fontFamily: Fonts.families.body,
   },
   premiumCheckoutButton: {
     backgroundColor: Colors.primary,

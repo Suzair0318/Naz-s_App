@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+  import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,9 @@ import {
   Animated,
   Platform,
   Linking,
+  BackHandler,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -278,11 +280,17 @@ const HomeScreen = ({ navigation, onScroll }) => {
   const cartBounceAnim = useRef(new Animated.Value(1)).current;
   const viewAllButtonScale = useRef(new Animated.Value(1)).current;
   const premiumButtonScale = useRef(new Animated.Value(1)).current;
-  // Categories fetched from backend
+  const [apiNewArrivals, setApiNewArrivals] = useState([]);
   const [apiCategories, setApiCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
-  // New Arrivals fetched from backend
-  const [apiNewArrivals, setApiNewArrivals] = useState([]);
+  // Disable Android hardware back on Home when focused
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => true; // consume back press
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription?.remove?.();
+    }, [])
+  );
   const [newArrivalsLoading, setNewArrivalsLoading] = useState(false);
   // Featured (On Sale) products fetched from backend
   const [apiFeaturedOnSale, setApiFeaturedOnSale] = useState([]);
@@ -810,6 +818,22 @@ const HomeScreen = ({ navigation, onScroll }) => {
     );
   };
 
+  const renderHomeSearchBar = () => (
+    <View style={styles.homeSearchWrapper}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => {
+          const cats = ['All', ...new Set(apiCategories.map(c => c.name).filter(Boolean))];
+          navigation.navigate('SearchMain', { categories: cats });
+        }}
+        style={styles.homeSearchContainer}
+      >
+        <Feather name="search" size={18} color={Colors.textPrimary} style={styles.homeSearchIcon} />
+        <Text style={styles.homeSearchPlaceholder}>Search for elegant clothing...</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   // Special offers section
   const renderSpecialOffers = () => (
     <View style={styles.offersSection}>
@@ -836,7 +860,6 @@ const HomeScreen = ({ navigation, onScroll }) => {
       </View>
     </View>
   );
-
 
   const renderSectionHeader = (title, actionText) => (
     <View style={styles.sectionHeader}>
@@ -890,7 +913,6 @@ const HomeScreen = ({ navigation, onScroll }) => {
       </View>
     );
   };
-
 
   const renderFeaturedProducts = () => {
     return (
@@ -973,6 +995,7 @@ const HomeScreen = ({ navigation, onScroll }) => {
     <SafeAreaView style={styles.container}>
       {renderHeader()}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {renderHomeSearchBar()}
         {renderPremiumBannerCarousel()}
         {renderCategories()}
         {renderNewArrivals()}
@@ -1080,6 +1103,34 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     letterSpacing: 1,
     marginTop: 2,
+  },
+  homeSearchWrapper: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 4,
+  },
+  homeSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    height: 46,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    elevation: 2,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+  },
+  homeSearchIcon: {
+    marginRight: 10,
+  },
+  homeSearchPlaceholder: {
+    flex: 1,
+    color: Colors.textSecondary,
+    fontSize: Fonts.sizes.md,
   },
   cartButton: {
     position: 'relative',

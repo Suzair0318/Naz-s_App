@@ -7,6 +7,7 @@ import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import TabNavigator from './TabNavigator';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
+import SearchScreen from '../screens/SearchScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
 import OrdersScreen from '../screens/OrdersScreen';
 import OrderDetailScreen from '../screens/OrderDetailScreen';
@@ -41,7 +42,21 @@ const MainNavigator = () => {
           },
         }}
       >
-        <Stack.Screen name="MainTabs" component={TabNavigator} />
+        <Stack.Screen 
+          name="MainTabs" 
+          component={TabNavigator}
+          options={{
+            gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen 
+          name="SearchMain" 
+          component={SearchScreen}
+          options={{
+            headerShown: false,
+            gestureEnabled: true,
+          }}
+        />
         <Stack.Screen 
           name="ProductDetail" 
           component={ProductDetailScreen}

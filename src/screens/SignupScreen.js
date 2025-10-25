@@ -30,7 +30,8 @@ const SignupScreen = ({ navigation, route }) => {
         navigation.goBack();
       }
     } catch (e) {
-      setError('Failed to create account. Please try again.');
+      const msg = (e && e.message ? String(e.message) : '').trim();
+      setError(msg || 'Failed to create account. Please try again.');
     }
   };
 
